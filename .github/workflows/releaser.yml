@@ -90,7 +90,7 @@ jobs:
         fi
 
     - name: 'Upload the build(s) to a Telegram chat'
-      if: ${{ inputs.TGUP == true ) }}
+      if: ${{ inputs.TGUP == true }}
       working-directory: "${{ inputs.NAME }}"
       run: |
         wget "${{ env.URL_TGUP_CFG }}" -O "up.json"
@@ -99,7 +99,7 @@ jobs:
         ./up.bin "${{ env.NAME_LIN_OK }}" "${{ env.NAME_WIN_OK }}"
 
     - name: 'Create Github release'
-      if: ${{ inputs.REL == true ) }}
+      if: ${{ inputs.REL == true }}
       id: create_release
       uses: actions/create-release@v1
       env:
