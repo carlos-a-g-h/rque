@@ -130,7 +130,7 @@ async fn get_status() -> HttpResponse
 	.json( json!({}) )
 }
 
-#[get("/all")]
+#[get("/que")]
 async fn get_names(app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut names: Vec<String>=Vec::new();
@@ -226,7 +226,7 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 }
 
 #[post("/add")]
-async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn post_queue_add(from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let status_code:u16={ if from_post.elem.len()==0 {403} else {200} };
 	if status_code==200
@@ -254,7 +254,21 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 	.json(json!({ "status":status_code }))
 }
 
-#[delete("/{name}")]
+#[delete("/que")]
+async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
+{
+	let mut counter=app_data.counter.lock().unwrap();
+	let mut status_code:u16={ if counter.is_empty() { 400 } else { 200 } };
+	if status_code==200
+	{
+		counter.quecol.clear();
+	};
+	HttpResponse::Ok()
+	.status(StatusCode::from_u16(status_code).unwrap())
+	.json(json!({ "status":status_code }))
+}
+
+#[delete("/que/{name}")]
 async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut counter=app_data.counter.lock().unwrap();
@@ -348,7 +362,8 @@ async fn main() -> std::io::Result<()>
 			.service(get_names)
 			.service(get_queue)
 			.service(get_index)
-			.service(post_queue)
+			.service(post_queue_add)
+			.service(delete_all)
 			.service(delete_queue)
 			.service(delete_index)
 		)
