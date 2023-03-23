@@ -228,7 +228,7 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 #[post("/add")]
 async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
-	let mut status_code:u16={ if from_post.elem.len()==0 {403} else {200} };
+	let status_code:u16={ if from_post.elem.len()==0 {403} else {200} };
 	if status_code==200
 	{
 		let new_name=from_post.name.clone();
@@ -268,7 +268,8 @@ async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 	};
 	if status_code==200
 	{
-		let contents=counter.quecol.remove(&from_path.into_inner()).unwrap();
+		let name=&from_path.into_inner();
+		let contents=counter.quecol.remove(name).unwrap();
 		println!("\n- Deleting this queue:\n  Name: {}\n  Contents: {:?}",name,contents.data);
 	};
 	HttpResponse::Ok()
@@ -291,7 +292,7 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 	};
 	if status_code==200
 	{
-		let mut queue=counter.quecol.get_mut(&name).unwrap();
+		let queue=counter.quecol.get_mut(&name).unwrap();
 		if queue.kick(index)
 		{
 			println!("\n- Kicked out from a queue\n  Name: {}\n  Index: {}",name,index);
