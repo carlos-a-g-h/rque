@@ -18,15 +18,16 @@ jobs:
     - name: "Fetch repo"
       uses: actions/checkout@v3
 
-    - name: 'Run: cargo init'
+    - name: "Run 'cargo init' and 'cargo build'"
       run: |
         cargo init --vcs=none "${{ env.NAME_APP }}"
         cat dep.txt >> "${{ env.NAME_APP }}/Cargo.toml"
+        cargo build --verbose
         cp -va "${{ env.NAME_SRC }}"/* "${{ env.NAME_APP }}"/
         rm -rfv "${{ env.NAME_SRC }}"
         printf "\nProject files:\n"
         find "${{ env.NAME_APP }}"
 
-    - name: 'Run: cargo test'
+    - name: "Run 'cargo test'"
       working-directory: "${{ env.NAME_APP }}"
       run: cargo test --verbose
