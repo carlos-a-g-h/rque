@@ -6,6 +6,8 @@ use actix_web::http::StatusCode;
 use serde::Deserialize;
 use serde_json::json;
 
+static RQUE_DEFAULT_PORT:u16=8080;
+
 // Queue struct
 
 struct Queue
@@ -262,7 +264,6 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 	let mut wutt:bool={
 		if from_post.elem.len()==0
 		{
-			println!("- The element has length of zero");
 			status_code=403;
 			true
 		}
@@ -280,13 +281,13 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 		match counter.quecol.get_mut(&new_name)
 		{
 			Some(fq) => {
-				println!("- Added to existing queue\n  Name: {}\n  New: {:?}\n",&new_name,&new_elem);
+				println!("\n- Added to existing queue\n  Name: {}\n  New: {:?}",&new_name,&new_elem);
 				fq.add(new_elem);
 			},
 			None => {
 				let mut vec_master:Vec<Vec<String>>=Vec::new();
 				vec_master.push(new_elem);
-				println!("- Created a new queue\n  Name: {}\n  Content: {:?}\n",&new_name,&vec_master);
+				println!("\n- Created a new queue\n  Name: {}\n  Content: {:?}",&new_name,&vec_master);
 				counter.quecol.insert(new_name, Queue { data:vec_master });
 			},
 		};
@@ -299,7 +300,25 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 
 fn get_port() -> u16
 {
-	
+	println!("\n- Obtaining Port from args");
+	let args: Vec<String> = env::args().collect();
+	if args.len()==1
+	{
+		println!("  NOTE: Using the default port");
+		RQUE_DEFAULT_PORT
+	}
+	else
+	{
+		let port_raw:String=args.remove(1);
+		match port_raw.parse::<u16>()
+		{
+			Ok(num) => num,
+			Err(_) => {
+				println!("  WARN: The arg for the port provided is NaN. Using default port instead");
+				RQUE_DEFAULT_PORT
+			},
+		}
+	}
 }
 
 // Application setup
@@ -307,7 +326,8 @@ fn get_port() -> u16
 #[actix_web::main]
 async fn main() -> std::io::Result<()>
 {
-	println!("Running server at port 8080");
+	let port=get_port();
+	println!("\nChosen port: {}\n",port);
 	let persistent=web::Data::new(TheAppState{
 		counter: Mutex::new( TheData{quecol: HashMap::new()} )
 	});
@@ -320,7 +340,7 @@ async fn main() -> std::io::Result<()>
 			.service(get_index)
 			.service(post_queue)
 		)
-		.bind(("127.0.0.1", 8080))?
+		.bind(("127.0.0.1",port))?
 		.run()
 		.await
 }
