@@ -277,7 +277,7 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 }
 
 #[delete("/{name}")]
-async fn delete_queue(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut counter=app_data.counter.lock().unwrap();
 	let mut status_code:u16={ if counter.is_empty() { 404 } else { 200 } };
@@ -300,7 +300,7 @@ async fn delete_queue(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 }
 
 #[delete("/{name}/{index}")]
-async fn delete_queue(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut counter=app_data.counter.lock().unwrap();
 	let mut status_code:u16={ if counter.is_empty() { 404 } else { 200 } };
@@ -313,9 +313,16 @@ async fn delete_queue(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 	};
 	if status_code==200
 	{
-		let name=from_path.into_inner()
-		let contents=counter.quecol.get_mut(&name).unwrap();
-		//
+		let (name,index)=from_path.into_inner();
+		let mut queue=counter.quecol.get_mut(&name).unwrap();
+		if queue.kick(index)
+		{
+			println!("\n- Kicked out from a queue\n  Name: {}\n  Index: {}",name,index);
+		}
+		else
+		{
+			status_code==404;
+		};
 	};
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
