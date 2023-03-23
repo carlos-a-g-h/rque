@@ -357,6 +357,7 @@ fn get_port() -> u16
 #[actix_web::main]
 async fn main() -> std::io::Result<()>
 {
+	println!("[ rQUE ]");
 	let port=get_port();
 	println!("\nChosen port: {}\n",port);
 	let persistent=web::Data::new(TheAppState{
