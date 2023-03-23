@@ -7,6 +7,7 @@ on:
       - '.github/**'
 
 env:
+  CARGO_TERM_COLOR: always
   NAME_APP: "rque"
   NAME_SRC: "_"
 
