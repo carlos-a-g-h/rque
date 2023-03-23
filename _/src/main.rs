@@ -291,8 +291,31 @@ async fn delete_queue(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 	if status_code==200
 	{
 		let name=from_path.into_inner()
-		let contents=counter.quecol.remove(&que_name).unwrap();
+		let contents=counter.quecol.remove(&name).unwrap();
 		println!("\n- Deleting this queue:\n  Name: {}\n  Contents: {}",name,contents);
+	};
+	HttpResponse::Ok()
+	.status(StatusCode::from_u16(status_code).unwrap())
+	.json(json!({ "status":status_code }))
+}
+
+#[delete("/{name}/{index}")]
+async fn delete_queue(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+{
+	let mut counter=app_data.counter.lock().unwrap();
+	let mut status_code:u16={ if counter.is_empty() { 404 } else { 200 } };
+	if status_code==200
+	{
+		if !counter.quecol.contains_key(from_path.into_inner())
+		{
+			status_code=404;
+		};
+	};
+	if status_code==200
+	{
+		let name=from_path.into_inner()
+		let contents=counter.quecol.get_mut(&name).unwrap();
+		//
 	};
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
