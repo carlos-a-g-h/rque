@@ -259,17 +259,17 @@ async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 {
 	let mut counter=app_data.counter.lock().unwrap();
 	let mut status_code:u16={ if counter.is_empty() { 404 } else { 200 } };
+	let name=from_path.into_inner();
 	if status_code==200
 	{
-		if !counter.quecol.contains_key(&from_path.into_inner())
+		if !counter.quecol.contains_key(&name)
 		{
 			status_code=404;
 		};
 	};
 	if status_code==200
 	{
-		let name=&from_path.into_inner();
-		let contents=counter.quecol.remove(name).unwrap();
+		let contents=counter.quecol.remove(&name).unwrap();
 		println!("\n- Deleting this queue:\n  Name: {}\n  Contents: {:?}",name,contents.data);
 	};
 	HttpResponse::Ok()
