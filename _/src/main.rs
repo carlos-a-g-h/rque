@@ -193,16 +193,7 @@ async fn get_queue(name: web::Path<String>,app_data: web::Data<TheAppState>) -> 
 
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json(
-		if status_code==200
-		{
-			json!({ "result":result })
-		}
-		else
-		{
-			json!({})
-		}
-	)
+	.json( if status_code==200 { json!({ "result":result }) } else { json!({}) } )
 }
 
 #[get("/que/{name}/{index}")]
