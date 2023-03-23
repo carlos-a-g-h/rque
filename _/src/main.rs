@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::env;
 use std::sync::Mutex;
-use actix_web::{get, post, web, App, HttpServer, HttpResponse};
+use actix_web::{get, post, delete, web, App, HttpServer, HttpResponse};
 use actix_web::http::StatusCode;
 use serde::Deserialize;
 use serde_json::json;
@@ -94,28 +94,6 @@ impl TheData
 	{
 		let size:u16=self.get_size() as u16;
 		if size==0 { true } else { false }
-	}
-
-	fn if_key(&self,tgt_name: &str) -> bool
-	{
-		if self.is_empty()
-		{
-			false
-		}
-		else
-		{
-			let mut found: bool=false;
-			let que=&self.quecol;
-			for key in que.keys()
-			{
-				if key==&tgt_name
-				{
-					found=true;
-					break;
-				};
-			};
-			found
-		}
 	}
 }
 
@@ -258,7 +236,7 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 }
 
 #[post("/add")]
-async fn post_queue(from_path: web::Path<String>,from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut status_code:u16=200;
 	let mut wutt:bool={
@@ -272,8 +250,6 @@ async fn post_queue(from_path: web::Path<String>,from_post: web::Json<POST_Bring
 			false
 		}
 	};
-
-	
 
 	if wutt==false
 	{
@@ -297,7 +273,57 @@ async fn post_queue(from_path: web::Path<String>,from_post: web::Json<POST_Bring
 
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json(json!({}))
+	.json(json!({ "status":status_code }))
+}
+
+#[delete("/{name}")]
+async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+{
+	let mut counter=app_data.counter.lock().unwrap();
+	let mut status_code:u16={ if counter.is_empty() { 404 } else { 200 } };
+	if status_code==200
+	{
+		if !counter.quecol.contains_key(from_path.into_inner())
+		{
+			status_code=404;
+		};
+	};
+	if status_code==200
+	{
+		
+	};
+
+
+
+
+
+
+	let mut status_code:u16=200;
+	let status_code:u16={
+		if counter.is_empty()
+		{
+			404
+		}
+		else
+		{
+			match counter.quecol.get(&name.into_inner())
+			{
+				Some(queue_found)=>
+				{
+					for elem in &queue_found.data
+					{
+						result.push(elem.to_vec());
+					};
+					200
+				},
+				None=>404,
+			}
+		}
+	};
+
+	HttpResponse::Ok()
+	.status(StatusCode::from_u16(status_code).unwrap())
+	.json(json!({ "status":status_code }))
 }
 
 fn get_port() -> u16
