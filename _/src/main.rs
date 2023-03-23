@@ -277,7 +277,7 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 }
 
 #[delete("/{name}")]
-async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_queue(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut counter=app_data.counter.lock().unwrap();
 	let mut status_code:u16={ if counter.is_empty() { 404 } else { 200 } };
@@ -290,41 +290,16 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 	};
 	if status_code==200
 	{
-		
+		let name=from_path.into_inner()
+		let contents=counter.quecol.remove(&que_name).unwrap();
+		println!("\n- Deleting this queue:\n  Name: {}\n  Contents: {}",name,contents);
 	};
-
-
-
-
-
-
-	let mut status_code:u16=200;
-	let status_code:u16={
-		if counter.is_empty()
-		{
-			404
-		}
-		else
-		{
-			match counter.quecol.get(&name.into_inner())
-			{
-				Some(queue_found)=>
-				{
-					for elem in &queue_found.data
-					{
-						result.push(elem.to_vec());
-					};
-					200
-				},
-				None=>404,
-			}
-		}
-	};
-
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json(json!({ "status":status_code }))
 }
+
+// Application setup
 
 fn get_port() -> u16
 {
@@ -349,8 +324,6 @@ fn get_port() -> u16
 	}
 }
 
-// Application setup
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()>
 {
@@ -367,6 +340,8 @@ async fn main() -> std::io::Result<()>
 			.service(get_queue)
 			.service(get_index)
 			.service(post_queue)
+			.service(delete_queue)
+			.service(delete_index)
 		)
 		.bind(("127.0.0.1",port))?
 		.run()
