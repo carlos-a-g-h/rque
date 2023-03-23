@@ -258,7 +258,7 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 }
 
 #[post("/add")]
-async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn post_queue(from_path: web::Path<String>,from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut status_code:u16=200;
 	let mut wutt:bool={
@@ -272,6 +272,8 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 			false
 		}
 	};
+
+	
 
 	if wutt==false
 	{
