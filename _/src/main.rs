@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::env;
 use std::sync::Mutex;
-use actix_web::{get, post, web, App, HttpServer, HttpResponse};
+use actix_web::{get, post, delete, web, App, HttpServer, HttpResponse};
 use actix_web::http::StatusCode;
 use serde::Deserialize;
 use serde_json::json;
@@ -94,28 +94,6 @@ impl TheData
 	{
 		let size:u16=self.get_size() as u16;
 		if size==0 { true } else { false }
-	}
-
-	fn if_key(&self,tgt_name: &str) -> bool
-	{
-		if self.is_empty()
-		{
-			false
-		}
-		else
-		{
-			let mut found: bool=false;
-			let que=&self.quecol;
-			for key in que.keys()
-			{
-				if key==&tgt_name
-				{
-					found=true;
-					break;
-				};
-			};
-			found
-		}
 	}
 }
 
@@ -215,16 +193,7 @@ async fn get_queue(name: web::Path<String>,app_data: web::Data<TheAppState>) -> 
 
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json(
-		if status_code==200
-		{
-			json!({ "result":result })
-		}
-		else
-		{
-			json!({})
-		}
-	)
+	.json( if status_code==200 { json!({ "result":result }) } else { json!({}) } )
 }
 
 #[get("/que/{name}/{index}")]
@@ -251,7 +220,6 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 		},
 		None=>404,
 	};
-
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json( if status_code==200 { json!({ "element":element }) } else { json!({}) } )
@@ -260,20 +228,8 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 #[post("/add")]
 async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
-	let mut status_code:u16=200;
-	let mut wutt:bool={
-		if from_post.elem.len()==0
-		{
-			status_code=403;
-			true
-		}
-		else
-		{
-			false
-		}
-	};
-
-	if wutt==false
+	let status_code:u16={ if from_post.elem.len()==0 {403} else {200} };
+	if status_code==200
 	{
 		let new_name=from_post.name.clone();
 		let new_elem=from_post.elem.clone();
@@ -281,6 +237,7 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 		match counter.quecol.get_mut(&new_name)
 		{
 			Some(fq) => {
+				// TODO: Check for duplicates first (by the head)
 				println!("\n- Added to existing queue\n  Name: {}\n  New: {:?}",&new_name,&new_elem);
 				fq.add(new_elem);
 			},
@@ -292,11 +249,65 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 			},
 		};
 	};
-
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json(json!({}))
+	.json(json!({ "status":status_code }))
 }
+
+#[delete("/{name}")]
+async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
+{
+	let mut counter=app_data.counter.lock().unwrap();
+	let mut status_code:u16={ if counter.is_empty() { 404 } else { 200 } };
+	let name=from_path.into_inner();
+	if status_code==200
+	{
+		if !counter.quecol.contains_key(&name)
+		{
+			status_code=404;
+		};
+	};
+	if status_code==200
+	{
+		let contents=counter.quecol.remove(&name).unwrap();
+		println!("\n- Deleting this queue:\n  Name: {}\n  Contents: {:?}",name,contents.data);
+	};
+	HttpResponse::Ok()
+	.status(StatusCode::from_u16(status_code).unwrap())
+	.json(json!({ "status":status_code }))
+}
+
+#[delete("/{name}/{index}")]
+async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+{
+	let (name,index)=from_path.into_inner();
+	let mut counter=app_data.counter.lock().unwrap();
+	let mut status_code:u16={ if counter.is_empty() { 404 } else { 200 } };
+	if status_code==200
+	{
+		if !counter.quecol.contains_key(&name)
+		{
+			status_code=404;
+		};
+	};
+	if status_code==200
+	{
+		let queue=counter.quecol.get_mut(&name).unwrap();
+		if queue.kick(index)
+		{
+			println!("\n- Kicked out from a queue\n  Name: {}\n  Index: {}",name,index);
+		}
+		else
+		{
+			status_code==404;
+		};
+	};
+	HttpResponse::Ok()
+	.status(StatusCode::from_u16(status_code).unwrap())
+	.json(json!({ "status":status_code }))
+}
+
+// Application setup
 
 fn get_port() -> u16
 {
@@ -321,11 +332,10 @@ fn get_port() -> u16
 	}
 }
 
-// Application setup
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()>
 {
+	println!("[ rQUE ]");
 	let port=get_port();
 	println!("\nChosen port: {}\n",port);
 	let persistent=web::Data::new(TheAppState{
@@ -339,6 +349,8 @@ async fn main() -> std::io::Result<()>
 			.service(get_queue)
 			.service(get_index)
 			.service(post_queue)
+			.service(delete_queue)
+			.service(delete_index)
 		)
 		.bind(("127.0.0.1",port))?
 		.run()
