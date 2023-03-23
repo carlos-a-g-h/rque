@@ -2,7 +2,6 @@ name: Tester
 
 on:
   push:
-    branches: ['main']
     paths-ignore:
       - '.github/**'
 
