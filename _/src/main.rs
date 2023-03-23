@@ -229,7 +229,6 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 		},
 		None=>404,
 	};
-
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json( if status_code==200 { json!({ "element":element }) } else { json!({}) } )
@@ -238,20 +237,8 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 #[post("/add")]
 async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
-	let mut status_code:u16=200;
-	let mut wutt:bool={
-		if from_post.elem.len()==0
-		{
-			status_code=403;
-			true
-		}
-		else
-		{
-			false
-		}
-	};
-
-	if wutt==false
+	let mut status_code:u16={ if from_post.elem.len()==0 {403} else {200} };
+	if status_code==200
 	{
 		let new_name=from_post.name.clone();
 		let new_elem=from_post.elem.clone();
@@ -259,6 +246,7 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 		match counter.quecol.get_mut(&new_name)
 		{
 			Some(fq) => {
+				// TODO: Check for duplicates first (by the head)
 				println!("\n- Added to existing queue\n  Name: {}\n  New: {:?}",&new_name,&new_elem);
 				fq.add(new_elem);
 			},
@@ -270,7 +258,6 @@ async fn post_queue(from_post: web::Json<POST_BringElem>,app_data: web::Data<The
 			},
 		};
 	};
-
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json(json!({ "status":status_code }))
@@ -290,8 +277,8 @@ async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 	};
 	if status_code==200
 	{
-		let contents=counter.quecol.remove(&name).unwrap();
-		println!("\n- Deleting this queue:\n  Name: {}\n  Contents: {:?}",name,contents);
+		let contents=counter.quecol.remove(&from_path.into_inner()).unwrap();
+		println!("\n- Deleting this queue:\n  Name: {}\n  Contents: {:?}",name,contents.data);
 	};
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
