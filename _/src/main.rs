@@ -34,7 +34,7 @@ static RQUE_HTML_HELP:&str="
 		<p>DELETE /sel/{name}/{index}<br>Desc.: Select by index a specific element in a specific group and delete that element. Returns 200 if successful</p>
 	</body>
 </html>
-"
+";
 
 // Group struct
 
