@@ -293,6 +293,7 @@ async fn get_index_range(from_path: web::Path<(String,usize,usize)>,app_data: we
 {
 	let (name,index,qtty)=from_path.into_inner();
 	let counter=app_data.counter.lock().unwrap();
+	let mut the_slice:Vec<Vec<String>>=Vec::new();
 	let mut status_code:u16={ if counter.quecol.is_empty() { 200 } else { 404 } };
 	if status_code==200
 	{
@@ -304,7 +305,17 @@ async fn get_index_range(from_path: web::Path<(String,usize,usize)>,app_data: we
 	if status_code==200
 	{
 		let ul_group=counter.quecol.get(&name).unwrap();
-		let the_slice:Vec<Vec<String>>=ul_group.get_range(index,qtty);
+		let res:Vec<Vec<String>>=ul_group.get_range(index,qtty);
+		if res.len()>0
+		{
+			for e in res.iter()
+			{
+				the_slice.push(e.to_string());
+			};
+		};
+	};
+	if status_code==200
+	{
 		if the_slice.len()==0
 		{
 			status_code=403;
