@@ -33,8 +33,8 @@ env:
   URL_TGUP_CFG: "${{ secrets.URL_TGUP_CFG }}"
   NAME_APP: "rbooker"
   NAME_SRC: "_"
-  NAME_LIN_OK: "rque.linux.amd64"
-  NAME_WIN_OK: "rque.win64.exe"
+  NAME_LIN_OK: "rbooker.linux.amd64"
+  NAME_WIN_OK: "rbooker.win64.exe"
 
 jobs:
   main:
