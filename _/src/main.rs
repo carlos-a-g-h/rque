@@ -310,7 +310,7 @@ async fn get_index_range(from_path: web::Path<(String,usize,usize)>,app_data: we
 		{
 			for e in res.iter()
 			{
-				the_slice.push(e.to_string());
+				the_slice.push(e.to_vec());
 			};
 		};
 	};
