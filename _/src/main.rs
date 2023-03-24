@@ -27,6 +27,7 @@ static RQUE_HTML_HELP:&str="
 		<p>GET /all<br>Desc.: Returns a list of existing group names<br>Res. (JSON, 200): <code>{'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{}</code></p>
 		<p>GET /sel/{name}<br>Desc.: Returns all the contents of the specified group<br>Res. (JSON, 200): <code>{ 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
 		<p>GET /sel/{name}/{index}<br>Desc.: Returns a selected element from a group<br>Res. (JSON, 200): <code>{'element':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
+		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Returns a slice of a group, using a starting index and a quantity. Returns 200 if it returns at least one element<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
 		<p>POST /add/sin<br>JSON <code>{'name':'some group','element':['head','content',...,'tail']}</code><br>Desc.: Adds a new element to the bottom of an existing group (yes, it's like a queue). Returns 200 if successful<br>NOTE: If the group does not exist, it will  be created automatically<br>NOTE: If the new element to add matches the head of an existing element, the new element will not be added<br>Res. (JSON, any): <code>{}</code></p>
 		<p>DELETE /all<br>Desc.: Deletes all groups. Returns 200 if successful<br>WARNING: This is dangerous<br>Res. (JSON, any): <code>{}</code></p>
 		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group and all of its content. Returns 200 if successful<br>Res. (JSON, any): <code>{}</code></p>
@@ -96,20 +97,35 @@ impl Group
 		if self.index_exists(index) { self.data[index].clone() } else { Vec::new() }
 	}
 
+	fn get_range(&self,index: usize, qtty: usize) -> Vec<Vec<String>>
+	{
+		if !self.index_exists(index)
+		{
+			return Vec::new()
+		};
+		let size=self.get_size();
+		let qtty_real:usize={ if qtty==0 { size } else { qtty } };
+		let mut result:Vec<Vec<String>>=Vec::new();
+		let mut pos=index;
+		let mut added:usize=0;
+		loop
+		{
+			let elem=self.get(pos);
+			result.push(elem.to_vec());
+			pos=pos+1;
+			added=added+1;
+			if pos==size || added==qtty_real
+			{
+				break;
+			};
+		};
+		result
+	}
+
 	fn kick(&mut self,index: usize) -> Vec<String>
 	{
 		if self.index_exists(index) { self.data.remove(index) } else { Vec::new() }
 	}
-
-	// NOTE: Comparison is done by checking the index 0 of the element, AKA: the head
-	/*
-	fn if_exists(&self, &element) -> bool
-	{
-		if self.is_empty()
-		{
-			return false;
-		};
-	}*/
 }
 
 // Main Data struct
@@ -272,6 +288,33 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 	.json( if status_code==200 { json!({ "element":element }) } else { json!({}) } )
 }
 
+#[get("/sel/{name}/{index}/{qtty}")]
+async fn get_index_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+{
+	let (name,index,qtty)=from_path.into_inner();
+	let counter=app_data.counter.lock().unwrap();
+	let mut status_code:u16={ if counter.quecol.is_empty() { 200 } else { 404 } };
+	if status_code==200
+	{
+		if !counter.quecol.contains_key(&name)
+		{
+			status_code=404;
+		};
+	};
+	if status_code==200
+	{
+		let ul_group=counter.quecol.get(&name).unwrap();
+		let the_slice:Vec<Vec<String>>=ul_group.get_range(index,qtty);
+		if the_slice.len()==0
+		{
+			status_code=403;
+		};
+	};
+	HttpResponse::Ok()
+	.status(StatusCode::from_u16(status_code).unwrap())
+	.json( if status_code==200 { json!({ "slice":the_slice }) } else { json!({}) } )
+}
+
 #[post("/add/sin")]
 async fn post_queue_add(from_post: web::Json<POST_BringOne>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
@@ -415,6 +458,7 @@ async fn main() -> std::io::Result<()>
 			.service(get_names)
 			.service(get_queue)
 			.service(get_index)
+			.service(get_index_range)
 			.service(post_queue_add)
 			.service(delete_all)
 			.service(delete_queue)
