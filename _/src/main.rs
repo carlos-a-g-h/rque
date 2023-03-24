@@ -251,7 +251,7 @@ async fn post_queue_add(from_post: web::Json<POST_BringElem>,app_data: web::Data
 		match counter.quecol.get_mut(&new_name)
 		{
 			Some(fq) => {
-				if fq.add(new_elem.copy())
+				if fq.add(new_elem.clone())
 				{
 					println!("\n- Added to existing queue\n  Name: {}\n  New: {:?}",&new_name,&new_elem);
 				}
@@ -354,7 +354,7 @@ fn get_port() -> u16
 		match port_raw.parse::<u16>()
 		{
 			Ok(num) => {
-				println!("  Choosing the given port")
+				println!("  Choosing the given port");
 				num
 			},
 			Err(_) => {
