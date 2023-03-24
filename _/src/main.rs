@@ -60,7 +60,7 @@ impl Group
 
 	fn add(&mut self,value: Vec<String>) -> bool
 	{
-		let val_head=value.first.unwrap()
+		let val_head=value.first().unwrap()
 		if self.has_head(val_head)
 		{
 			return false;
@@ -239,7 +239,7 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 	.json( if status_code==200 { json!({ "element":element }) } else { json!({}) } )
 }
 
-#[post("/add")]
+#[post("/add/sin")]
 async fn post_queue_add(from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let status_code:u16={ if from_post.elem.len()==0 {403} else {200} };
@@ -257,7 +257,7 @@ async fn post_queue_add(from_post: web::Json<POST_BringElem>,app_data: web::Data
 				}
 				else
 				{
-					status_code==403
+					status_code==403;
 				};
 			},
 			None => {
@@ -273,21 +273,17 @@ async fn post_queue_add(from_post: web::Json<POST_BringElem>,app_data: web::Data
 	.json(json!({ "status":status_code }))
 }
 
-#[delete("/que")]
+#[delete("/all")]
 async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut counter=app_data.counter.lock().unwrap();
-	let mut status_code:u16={ if counter.is_empty() { 400 } else { 200 } };
-	if status_code==200
-	{
-		counter.quecol.clear();
-	};
+	let status_code:u16={ if counter.is_empty() { 400 } else { counter.quecol.clear();200 } };
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json(json!({ "status":status_code }))
 }
 
-#[delete("/que/{name}")]
+#[delete("/sin/{name}")]
 async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut counter=app_data.counter.lock().unwrap();
@@ -310,7 +306,7 @@ async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 	.json(json!({ "status":status_code }))
 }
 
-#[delete("/{name}/{index}")]
+#[delete("/sin/{name}/{index}")]
 async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let (name,index)=from_path.into_inner();
@@ -329,7 +325,7 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 		let dumped=queue.kick(index);
 		if dumped.len()>0
 		{
-			println!("\n- Kicked out from a queue\n  Name: {}\n  Index: {}\nElement: {}",name,index,dumped);
+			println!("\n- Kicked out from a queue\n  Name: {}\n  Index: {}\nElement: {:?}",name,index,dumped);
 		}
 		else
 		{
