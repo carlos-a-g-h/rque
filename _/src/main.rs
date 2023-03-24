@@ -242,8 +242,8 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 #[post("/add/sin")]
 async fn post_queue_add(from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
-	let status_code:u16={ if from_post.elem.len()==0 {403} else {200} };
-	if mut status_code==200
+	let mut status_code:u16={ if from_post.elem.len()==0 {403} else {200} };
+	if status_code==200
 	{
 		let new_name=from_post.name.clone();
 		let new_elem=from_post.elem.clone();
