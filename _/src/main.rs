@@ -24,10 +24,10 @@ static RQUE_HTML_HELP:&str="
 		<h2>API usage</h2>
 		<p>GET /help<br>Desc.: This help</p>
 		<p>GET /<br>Desc.: Always gives 200<br>Res.: (200): <code>{}</code></p>
-		<p>GET /all<br>Desc.: Returns a list of existing group names<br>Res. (JSON, 200): <code>{'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{}</code></p>
-		<p>GET /sel/{name}<br>Desc.: Returns all the contents of the specified group<br>Res. (JSON, 200): <code>{ 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
-		<p>GET /sel/{name}/{index}<br>Desc.: Returns a selected element from a group<br>Res. (JSON, 200): <code>{'element':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
-		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Returns a slice of a group, using a starting index and a quantity. Returns 200 if it returns at least one element<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
+		<p>GET /all<br>Desc.: Recovers a list of existing group names<br>Res. (JSON, 200): <code>{'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{}</code></p>
+		<p>GET /sel/{name}<br>Desc.: Recovers all the contents of the specified group<br>Res. (JSON, 200): <code>{ 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
+		<p>GET /sel/{name}/{index}<br>Desc.: Recovers a selected element from a group<br>Res. (JSON, 200): <code>{'element':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
+		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Recovers a slice of a group, using a starting index and a quantity (range selection). Returns 200 if it recovered at least one element<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
 		<p>POST /add/sin<br>JSON <code>{'name':'some group','element':['head','content',...,'tail']}</code><br>Desc.: Adds a new element to the bottom of an existing group (yes, it's like a queue). Returns 200 if successful<br>NOTE: If the group does not exist, it will  be created automatically<br>NOTE: If the new element to add matches the head of an existing element, the new element will not be added<br>Res. (JSON, any): <code>{}</code></p>
 		<p>DELETE /all<br>Desc.: Deletes all groups. Returns 200 if successful<br>WARNING: This is dangerous<br>Res. (JSON, any): <code>{}</code></p>
 		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group and all of its content. Returns 200 if successful<br>Res. (JSON, any): <code>{}</code></p>
