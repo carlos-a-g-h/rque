@@ -176,10 +176,12 @@ async fn get_status() -> HttpResponse
 
 #[get("/help")]
 async fn page_help() -> HttpResponse
+{
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(200).unwrap())
 	.insert_header(("Content-Type","text/html"))
 	.body( RQUE_HTML_HELP.to_string() )
+}
 
 #[get("/all")]
 async fn get_names(app_data: web::Data<TheAppState>) -> HttpResponse
