@@ -1,3 +1,5 @@
 # rQUE
 
-This is a work in progress: DO NOT DOWNLOAD THE BUILDS
+TL, DW
+
+Read the help.html file
