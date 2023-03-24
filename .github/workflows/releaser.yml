@@ -31,10 +31,10 @@ env:
   CARGO_TERM_COLOR: always
   URL_TGUP_BIN: "https://github.com/carlos-a-g-h/tgup/releases/download/tgup/tgup.linux.amd64"
   URL_TGUP_CFG: "${{ secrets.URL_TGUP_CFG }}"
-  NAME_APP: "rbooker"
+  NAME_APP: "rque"
   NAME_SRC: "_"
-  NAME_LIN_OK: "rbooker.linux.amd64"
-  NAME_WIN_OK: "rbooker.win64.exe"
+  NAME_LIN_OK: "rque.linux.amd64"
+  NAME_WIN_OK: "rque.win64.exe"
 
 jobs:
   main:
