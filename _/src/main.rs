@@ -48,7 +48,7 @@ impl Group
 		let mut has_it=false;
 		for elem in &self.data
 		{
-			let elem_head=e.first().unwrap();
+			let elem_head=elem.first().unwrap();
 			if elem_head==head
 			{
 				has_it=true;
@@ -60,7 +60,7 @@ impl Group
 
 	fn add(&mut self,value: Vec<String>) -> bool
 	{
-		let val_head=value.first().unwrap()
+		let val_head=value.first().unwrap();
 		if self.has_head(val_head)
 		{
 			return false;
@@ -251,7 +251,7 @@ async fn post_queue_add(from_post: web::Json<POST_BringElem>,app_data: web::Data
 		match counter.quecol.get_mut(&new_name)
 		{
 			Some(fq) => {
-				if fq.add(new_elem)
+				if fq.add(new_elem.copy())
 				{
 					println!("\n- Added to existing queue\n  Name: {}\n  New: {:?}",&new_name,&new_elem);
 				}
@@ -341,11 +341,11 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 
 fn get_port() -> u16
 {
-	println!("\n- Obtaining Port from args");
+	println!("\n- Getting the port");
 	let mut args: Vec<String> = env::args().collect();
 	if args.len()==1
 	{
-		println!("  NOTE: Using the default port");
+		println!("  Using the default port");
 		RQUE_DEFAULT_PORT
 	}
 	else
@@ -353,9 +353,12 @@ fn get_port() -> u16
 		let port_raw:String=args.remove(1);
 		match port_raw.parse::<u16>()
 		{
-			Ok(num) => num,
+			Ok(num) => {
+				println!("  Choosing the given port")
+				num
+			},
 			Err(_) => {
-				println!("  WARN: The arg for the port provided is NaN. Using default port instead");
+				println!("  Using default port instead: Got NaN from the args");
 				RQUE_DEFAULT_PORT
 			},
 		}
@@ -365,7 +368,7 @@ fn get_port() -> u16
 #[actix_web::main]
 async fn main() -> std::io::Result<()>
 {
-	println!("[ rQUE ]");
+	println!("\n[ rQUE ]");
 	let port=get_port();
 	println!("\nChosen port: {}\n",port);
 	let persistent=web::Data::new(TheAppState{
