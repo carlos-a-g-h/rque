@@ -1,5 +1,3 @@
 # rQUE
 
-TL, DW
-
-Read the help.html file
+Read the help.html file or go to /help using your browser
