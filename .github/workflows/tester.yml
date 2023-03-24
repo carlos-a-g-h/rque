@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  NAME_APP: "rbooker"
+  NAME_APP: "rque"
   NAME_SRC: "_"
 
 jobs:
