@@ -7,7 +7,6 @@ use serde::Deserialize;
 use serde_json::json;
 
 static RQUE_DEFAULT_PORT:u16=8080;
-static RQUE_GROUP_MAX_SIZE:u8=256;
 static RQUE_HTML_HELP:&str="
 <!DOCTYPE html>
 <html lang=\"en\">
@@ -45,11 +44,6 @@ struct Group
 
 impl Group
 {
-	fn new() -> Group
-	{
-		Group{ data: Vec::new() }
-	}
-
 	fn get_size(&self) -> usize
 	{
 		self.data.len()
