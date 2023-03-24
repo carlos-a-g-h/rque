@@ -7,6 +7,34 @@ use serde::Deserialize;
 use serde_json::json;
 
 static RQUE_DEFAULT_PORT:u16=8080;
+static RQUE_GROUP_MAX_SIZE:u8=256;
+static RQUE_HTML_HELP:&str="
+<!DOCTYPE html>
+<html lang=\"en\">
+	<meta charset=\"UTF-8\">
+	<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
+	<head>
+		<title>rQUE quick help</title>
+	</head>
+	<body>
+		<h1>rQUE</h1>
+		<h2>How data is stored</h2>
+		<p>In rQUE, data is stored in a large hashmap, where each key is a group name and each value is the content of the group</p>
+		<h3><code>{<br>'group 1' : [<br>['thing1'] , ['thing2','bonus']<br>] ,<br>'group2' : [<br>['thing1']<br>] ,<br>'another group' : [<br> ['headname1','data'] , ['headname2','data'], ['headname3','data','more data'] <br>] <br>}</code></h3>
+		<p>Groups are lists and each group name is unique<br>Each element inside a group is a list with the first index being the head<br>2 or more elements in the same group cannot have the same head, and this is checked automatically by rQUE before adding new elements to a group</p>
+		<h2>API usage</h2>
+		<p>GET /help<br>Desc.: This help</p>
+		<p>GET /<br>Desc.: Always gives 200<br>Res.: (200): <code>{}</code></p>
+		<p>GET /all<br>Desc.: Returns a list of existing group names<br>Res. (JSON, 200): <code>{'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{}</code></p>
+		<p>GET /sel/{name}<br>Desc.: Returns all the contents of the specified group<br>Res. (JSON, 200): <code>{ 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
+		<p>GET /sel/{name}/{index}<br>Desc.: Returns a selected element from a group<br>Res. (JSON, 200): <code>{'element':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
+		<p>POST /add/sin<br>JSON <code>{'name':'some group','element':['head','content',...,'tail']}</code><br>Desc.: Adds a new element to the bottom of an existing group (yes, it's like a queue). Returns 200 if successful<br>NOTE: If the group does not exist, it will  be created automatically<br>NOTE: If the new element to add matches the head of an existing element, the new element will not be added<br>Res. (JSON, any): <code>{}</code></p>
+		<p>DELETE /all<br>Desc.: Deletes all groups. Returns 200 if successful<br>WARNING: This is dangerous<br>Res. (JSON, any): <code>{}</code></p>
+		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group and all of its content. Returns 200 if successful<br>Res. (JSON, any): <code>{}</code></p>
+		<p>DELETE /sel/{name}/{index}<br>Desc.: Select by index a specific element in a specific group and delete that element. Returns 200 if successful</p>
+	</body>
+</html>
+"
 
 // Group struct
 
@@ -121,18 +149,20 @@ struct TheAppState
 // JSON requests
 
 #[derive(Deserialize)]
-struct POST_BringElem
+struct POST_BringOne
 {
 	name:String,
 	elem:Vec<String>,
 }
 
+/*
 #[derive(Deserialize)]
-struct POST_BringIndex
+struct POST_BringMul
 {
 	name:String,
-	index:usize,
+	elem:Vec<Vec<String>>,
 }
+*/
 
 // HTTP Handlers
 
@@ -144,7 +174,14 @@ async fn get_status() -> HttpResponse
 	.json( json!({}) )
 }
 
-#[get("/que")]
+#[get("/help")]
+async fn page_help() -> HttpResponse
+	HttpResponse::Ok()
+	.status(StatusCode::from_u16(200).unwrap())
+	.insert_header(("Content-Type","text/html"))
+	.body( RQUE_HTML_HELP.to_string() )
+
+#[get("/all")]
 async fn get_names(app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut names: Vec<String>=Vec::new();
@@ -178,7 +215,7 @@ async fn get_names(app_data: web::Data<TheAppState>) -> HttpResponse
 	)
 }
 
-#[get("/que/{name}")]
+#[get("/sel/{name}")]
 async fn get_queue(name: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut result: Vec<Vec<String>>=Vec::new();
@@ -207,10 +244,10 @@ async fn get_queue(name: web::Path<String>,app_data: web::Data<TheAppState>) -> 
 
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json( if status_code==200 { json!({ "result":result }) } else { json!({}) } )
+	.json( if status_code==200 { json!({ "group":result }) } else { json!({}) } )
 }
 
-#[get("/que/{name}/{index}")]
+#[get("/sel/{name}/{index}")]
 async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut element:Vec<String>=Vec::new();
@@ -240,7 +277,7 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 }
 
 #[post("/add/sin")]
-async fn post_queue_add(from_post: web::Json<POST_BringElem>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn post_queue_add(from_post: web::Json<POST_BringOne>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut status_code:u16={ if from_post.elem.len()==0 {403} else {200} };
 	if status_code==200
@@ -280,10 +317,10 @@ async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
 	let status_code:u16={ if counter.is_empty() { 400 } else { counter.quecol.clear();200 } };
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json(json!({ "status":status_code }))
+	.json(json!({}))
 }
 
-#[delete("/sin/{name}")]
+#[delete("/sel/{name}")]
 async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut counter=app_data.counter.lock().unwrap();
@@ -303,10 +340,10 @@ async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 	};
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json(json!({ "status":status_code }))
+	.json(json!({}))
 }
 
-#[delete("/sin/{name}/{index}")]
+#[delete("/sel/{name}/{index}")]
 async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let (name,index)=from_path.into_inner();
@@ -334,7 +371,7 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 	};
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json(json!({ "status":status_code }))
+	.json(json!({}))
 }
 
 // Application setup
@@ -377,6 +414,7 @@ async fn main() -> std::io::Result<()>
 	HttpServer::new(move ||
 		App::new()
 			.app_data(persistent.clone())
+			.service(page_help)
 			.service(get_status)
 			.service(get_names)
 			.service(get_queue)
