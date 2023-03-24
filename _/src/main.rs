@@ -8,21 +8,18 @@ use serde_json::json;
 
 static RQUE_DEFAULT_PORT:u16=8080;
 
-// Queue struct
+// Group struct
 
-struct Queue
+struct Group
 {
 	data: Vec<Vec<String>>,
 }
 
-impl Queue
+impl Group
 {
-	fn new() -> Queue
+	fn new() -> Group
 	{
-		Queue
-		{
-			data: Vec::new(),
-		}
+		Group{ data: Vec::new() }
 	}
 
 	fn get_size(&self) -> usize
@@ -42,9 +39,34 @@ impl Queue
 		if index>size || size==0 || size==index { false } else { true }
 	}
 
-	fn add(&mut self,value: Vec<String>)
+	fn has_head(&self,head: &String) -> bool
 	{
+		if self.is_empty()
+		{
+			return false;
+		};
+		let mut has_it=false;
+		for elem in &self.data
+		{
+			let elem_head=e.first().unwrap();
+			if elem_head==head
+			{
+				has_it=true;
+				break;
+			};
+		};
+		has_it
+	}
+
+	fn add(&mut self,value: Vec<String>) -> bool
+	{
+		let val_head=value.first.unwrap()
+		if self.has_head(val_head)
+		{
+			return false;
+		};
 		self.data.push(value);
+		true
 	}
 
 	fn get(&self,index: usize) -> Vec<String>
@@ -52,17 +74,9 @@ impl Queue
 		if self.index_exists(index) { self.data[index].clone() } else { Vec::new() }
 	}
 
-	fn kick(&mut self,index: usize) -> bool
+	fn kick(&mut self,index: usize) -> Vec<String>
 	{
-		if self.index_exists(index)
-		{
-			self.data.remove(index);
-			true
-		}
-		else
-		{
-			false
-		}
+		if self.index_exists(index) { self.data.remove(index) } else { Vec::new() }
 	}
 
 	// NOTE: Comparison is done by checking the index 0 of the element, AKA: the head
@@ -78,12 +92,12 @@ impl Queue
 
 // Main Data struct
 
-struct TheData
+struct Storage
 {
-	quecol: HashMap<String,Queue>,
+	quecol: HashMap<String,Group>,
 }
 
-impl TheData
+impl Storage
 {
 	fn get_size(&self) -> usize
 	{
@@ -101,7 +115,7 @@ impl TheData
 
 struct TheAppState
 {
-	counter: Mutex<TheData>
+	counter: Mutex<Storage>
 }
 
 // JSON requests
@@ -237,15 +251,20 @@ async fn post_queue_add(from_post: web::Json<POST_BringElem>,app_data: web::Data
 		match counter.quecol.get_mut(&new_name)
 		{
 			Some(fq) => {
-				// TODO: Check for duplicates first (by the head)
-				println!("\n- Added to existing queue\n  Name: {}\n  New: {:?}",&new_name,&new_elem);
-				fq.add(new_elem);
+				if fq.add(new_elem)
+				{
+					println!("\n- Added to existing queue\n  Name: {}\n  New: {:?}",&new_name,&new_elem);
+				}
+				else
+				{
+					status_code==403
+				};
 			},
 			None => {
 				let mut vec_master:Vec<Vec<String>>=Vec::new();
 				vec_master.push(new_elem);
 				println!("\n- Created a new queue\n  Name: {}\n  Content: {:?}",&new_name,&vec_master);
-				counter.quecol.insert(new_name, Queue { data:vec_master });
+				counter.quecol.insert(new_name, Group { data:vec_master });
 			},
 		};
 	};
@@ -307,13 +326,14 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 	if status_code==200
 	{
 		let queue=counter.quecol.get_mut(&name).unwrap();
-		if queue.kick(index)
+		let dumped=queue.kick(index);
+		if dumped.len()>0
 		{
-			println!("\n- Kicked out from a queue\n  Name: {}\n  Index: {}",name,index);
+			println!("\n- Kicked out from a queue\n  Name: {}\n  Index: {}\nElement: {}",name,index,dumped);
 		}
 		else
 		{
-			status_code==404;
+			status_code=404;
 		};
 	};
 	HttpResponse::Ok()
@@ -353,7 +373,7 @@ async fn main() -> std::io::Result<()>
 	let port=get_port();
 	println!("\nChosen port: {}\n",port);
 	let persistent=web::Data::new(TheAppState{
-		counter: Mutex::new( TheData{quecol: HashMap::new()} )
+		counter: Mutex::new( Storage{quecol: HashMap::new()} )
 	});
 	HttpServer::new(move ||
 		App::new()
