@@ -12,6 +12,7 @@
 		<h3><code>{<br>'group 1' : [<br>['thing1'] , ['thing2','bonus']<br>] ,<br>'group2' : [<br>['thing1']<br>] ,<br>'another group' : [<br> ['headname1','data'] , ['headname2','data'], ['headname3','data','more data'] <br>] <br>}</code></h3>
 		<p>Groups are lists and each group name is unique<br>Each element inside a group is a list with the first index being the head<br>2 or more elements in the same group cannot have the same head, and this is checked automatically by rQUE before adding new elements to a group</p>
 		<h2>API usage</h2>
+		<p>GET /help<br>Desc.: This help</p>
 		<p>GET /<br>Desc.: Always gives 200<br>Res.: (200): <code>{}</code></p>
 		<p>GET /all<br>Desc.: Returns a list of existing group names<br>Res. (JSON, 200): <code>{'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{}</code></p>
 		<p>GET /sel/{name}<br>Desc.: Returns all the contents of the specified group<br>Res. (JSON, 200): <code>{ 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
