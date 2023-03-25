@@ -38,29 +38,20 @@ static RQUE_HTML_HELP:&str="
 
 // Group struct
 
-struct Group
-{
-	data: Vec<Vec<String>>,
-}
+struct Group { data: Vec<Vec<String>> }
 
 impl Group
 {
-	fn get_size(&self) -> usize
-	{
-		self.data.len()
-	}
 
-	fn is_empty(&self) -> bool
-	{
-		let size=self.get_size();
-		if size==0 { true } else { false }
-	}
+	fn new() -> Group { Group { data:Vec::new() } }
 
-	fn index_exists(&self,index:usize) -> bool
-	{
-		let size=self.get_size();
-		if index>size || size==0 || size==index { false } else { true }
-	}
+	fn get_size(&self) -> usize { self.data.len() }
+
+	fn is_empty(&self) -> bool { let size=self.get_size();if size==0 { true } else { false } }
+
+	fn index_exists(&self,index:usize) -> bool { let size=self.get_size();if index>size || size==0 || size==index { false } else { true } }
+
+	fn get(&self,index: usize) -> Vec<String> { if self.index_exists(index) { self.data[index].clone() } else { Vec::new() } }
 
 	fn has_head(&self,head: &String) -> bool
 	{
@@ -94,11 +85,6 @@ impl Group
 		};
 		self.data.push(value);
 		true
-	}
-
-	fn get(&self,index: usize) -> Vec<String>
-	{
-		if self.index_exists(index) { self.data[index].clone() } else { Vec::new() }
 	}
 
 	fn get_range(&self,index: usize, qtty: usize) -> Vec<Vec<String>>
@@ -373,17 +359,23 @@ async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data
 	let mut res_arr:Vec<bool>=Vec::new();
 	if status_code==200
 	{
-		if !counter.quecol.contains_key(&from_post.name)
+		let name=&from_post.name;
+		if !counter.quecol.contains_key(name)
 		{
-			status_code=404;
+			counter.quecol.insert(name.to_string(),);
 		};
 	};
 	if status_code==200
 	{
-		let the_list=from_post.list;
-		let the_name=from_post.name;
-		let the_group=counter.quecol.get(&the_name).unwrap();
-		let added:usize=0;
+		let the_name=&from_post.name;
+		let the_list=&from_post.list;
+		let new_group:bool={ if counter.quecol.contains_key(the_name) { false } else { true } };
+		if new_group
+		{
+			counter.quecol.insert(name.to_string(),Group::new());
+		};
+		let mut the_group=counter.quecol.get(name).unwrap();
+		let mut added:usize=0;
 		for item in the_list.iter()
 		{
 			if the_group.add(item.to_vec())
@@ -397,11 +389,18 @@ async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data
 			};
 		};
 		let res_arr_size:usize=res_arr.len();
+		if status_code==200
+		{
+			println!("- Added multiple items to a group\n  isNew?: {}\n  Name: {}\n  List: {:?}\n  Added/Total: {}/{} {:?}:\n",new_group,the_name,the_list,added,res_arr_size,&res_arr);
+		}
+		if !(status_code==200) && new_group
+		{
+			println!("- New group left in blank after attempting to add multiple items\n  Name: {}",the_name);
+		};
 		if !(added==res_arr.len())
 		{
 			status_code=206;
 		};
-		println!("- Attempt to add items to a group\n  Name: {}\n  List: {:?}\n  Acc/Den.: {}/{} {:?}:\n",the_name,the_list,added,res_arr_size,&res_arr);
 	};
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
