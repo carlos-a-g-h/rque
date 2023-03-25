@@ -27,12 +27,19 @@ static RQUE_HELP:&str="
 		<p>GET /all<br>Desc.: Recovers a list of existing group names<br>Res. (JSON, 200): <code>{'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code></p>
 		<p>GET /sel/{name}<br>Desc.: Recovers all the items of the specified group<br>Res. (JSON, 200): <code>{ 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code></p>
 		<p>GET /sel/{name}/{index}<br>Desc.: Recovers a selected item from a group by its index<br>Res. (JSON, 200): <code>{'item':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code></p>
-		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Recovers a slice of a group, using a starting index and a quantity (range selection)<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code><br>NOTE: If you set quantity as 0, the item in the specified index and the rest of the items after the selected index will be chosen</p>
+		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Recovers a slice of a group by selecting in range<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code><br>NOTE: If you set quantity as 0, the item in the specified index and the rest of the items after the selected index will be chosen</p>
 		<p>POST /add/sin<br>JSON <code>{'name':'some group','item':['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue)<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
 		<p>POST /add/mul<br>JSON <code>{ 'name' : 'some group' , 'list' : ['head','content'] , ... , ['other','tail'] , ['thing'] }</code><br>Desc.: Adds multiple new items to a group. Returns 206 if partially successful<br>Res. (JSON, 200): <code>{ 'status' : 200 }</code><br>Res. (JSON, 206): <code>{ 'status' : 206 , details: [...] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
 		<p>DELETE /all<br>Desc.: Deletes all groups. Use with caution<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'error description' }</code></p>
 		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group along with its items<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
-		<p>DELETE /sel/{name}/{index}<br>Desc.: Deletes an item from a specified group and recovers it in the response<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'item' : ['some item','other data'] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
+		<p>DELETE /sel/{name}/{index}<br>Desc.: Deletes an item from a specified group and recovers it in the JSON response<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'item' : ['some item','other data'] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
+		<p>DELETE /sel/{name}/{index}/{qtty}<br>Desc.: Deletes multiple items selected in range and recovers the deleted elements in the JSON response<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code></p>
+		<h3>How does range select works?</h3>
+		<p>Range selection works by declaring a starting index and a quantity<br>If the quantity is zero, all items after the starting index are selected, including the item in the starting index</p>
+		<p>Examples:</p>
+		<p>DELETE /sel/queue1/3/2<br>Deletes from the group 'queue1' the items no. 3 and 4, because the starting index is 3 and the quantity is 2</p>
+		<p>DELETE /sel/stack/4/0<br>Deletes all items in the group 'stack' leaving only the items 0, 1, 2 and 3. In this case the starting index is 3 and all the other items after the item no. 3 are also selected because the quantity is set to 0</p>
+		<p>GET /sel/users/0/0<br>Gets all items from the group users, because the idex is 0 and the quantity is also 0</p>
 	</body>
 </html>
 ";
@@ -42,6 +49,7 @@ static RQUE_ERROR_GROUP_NOT_FOUND:&str="The specified group does not exist";
 static RQUE_ERROR_GROUP_EMPTY:&str="The specified group is empty";
 static RQUE_ERROR_ITEM_NOT_FOUND:&str="The item that correspond the specified index does not exist";
 static RQUE_ERROR_ITEM_NOT_VALID:&str="The provided item is not valid";
+static RQUE_ERROR_SLICE:&str="Wrong index";
 
 // Group struct
 
@@ -94,7 +102,9 @@ impl Group
 		true
 	}
 
-	fn get_range(&self,index: usize, qtty: usize) -> Vec<Vec<String>>
+	fn kick(&mut self,index: usize) -> Vec<String> { if self.index_exists(index) { self.data.remove(index) } else { Vec::new() } }
+
+	fn get_range(&mut self,index: usize, qtty: usize, steal: bool) -> Vec<Vec<String>>
 	{
 		if !self.index_exists(index)
 		{
@@ -107,9 +117,18 @@ impl Group
 		let mut added:usize=0;
 		loop
 		{
-			let elem=self.get(pos);
+			let elem:Vec<String>={
+				if steal { self.kick(pos) } else { self.get(pos) }
+			};
+			if elem.len()==0
+			{
+				break;
+			};
 			result.push(elem.to_vec());
-			pos=pos+1;
+			if !steal
+			{
+				pos=pos+1;
+			};
 			added=added+1;
 			if pos==size || added==qtty_real
 			{
@@ -117,11 +136,6 @@ impl Group
 			};
 		};
 		result
-	}
-
-	fn kick(&mut self,index: usize) -> Vec<String>
-	{
-		if self.index_exists(index) { self.data.remove(index) } else { Vec::new() }
 	}
 }
 
@@ -271,7 +285,7 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 }
 
 #[get("/sel/{name}/{index}/{qtty}")]
-async fn get_index_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn get_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
@@ -291,10 +305,10 @@ async fn get_index_range(from_path: web::Path<(String,usize,usize)>,app_data: we
 		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_GROUP_EMPTY }));
 	};
 
-	let the_slice:Vec<Vec<String>>=the_group.get_range(index,qtty);
+	let the_slice:Vec<Vec<String>>=the_group.get_range(index,qtty,false);
 	if the_slice.len()==0
 	{
-		json_res(400,json!({ "status":400,"msg":"Incorrect index parameter" }))
+		json_res(400,json!({ "status":400,"msg":RQUE_ERROR_SLICE }))
 	}
 	else
 	{
@@ -482,6 +496,39 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 	json_res(status_code,json!({ "status":status_code,"msg":msg }))
 }
 
+#[delete("/sel/{name}/{index}/{qtty}")]
+async fn delete_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+{
+	let mut storage=app_data.holder.lock().unwrap();
+	if storage.is_empty()
+	{
+		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_ZERO_GROUPS }));
+	};
+
+	let (the_name,index,qtty)=from_path.into_inner();
+	if !storage.quecol.contains_key(&the_name)
+	{
+		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_GROUP_NOT_FOUND }));
+	};
+
+	let the_group=storage.quecol.get(&the_name).unwrap();
+	if the_group.is_empty()
+	{
+		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_GROUP_EMPTY }));
+	};
+
+	let the_slice:Vec<Vec<String>>=the_group.get_range(index,qtty,true);
+	if the_slice.len()==0
+	{
+		json_res(400,json!({ "status":400,"msg":RQUE_ERROR_SLICE }))
+	}
+	else
+	{
+		println!("\n- Deleted multiple items from a group\n  Name: {}\n  List: {}",&the_name,&the_slice);
+		json_res(200,json!({ "status":200,"slice":the_slice }))
+	}
+}
+
 // Application setup
 
 fn get_port() -> u16
@@ -527,12 +574,13 @@ async fn main() -> std::io::Result<()>
 			.service(get_names)
 			.service(get_group)
 			.service(get_index)
-			.service(get_index_range)
+			.service(get_range)
 			.service(post_group_addsin)
 			.service(post_group_addmul)
 			.service(delete_all)
 			.service(delete_group)
 			.service(delete_index)
+			.service(delete_range)
 		)
 		.bind(("127.0.0.1",port))?
 		.run()
