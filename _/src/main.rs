@@ -23,15 +23,15 @@ static RQUE_HTML_HELP:&str="
 		<p>Groups are lists and each group name is unique<br>Each item inside a group is a list with the first index being the head of the item<br>2 or more items in the same group cannot have the same head, and this is checked automatically by rQUE before adding new items to a group</p>
 		<h2>API usage</h2>
 		<p>GET /help<br>Desc.: This help</p>
-		<p>GET /<br>Desc.: Always gives 200<br>Res.: (200): <code>{}</code></p>
+		<p>GET /<br>Desc.: Always gives 200<br>Res. (200): <code>{}</code></p>
 		<p>GET /all<br>Desc.: Recovers a list of existing group names<br>Res. (JSON, 200): <code>{'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{}</code></p>
 		<p>GET /sel/{name}<br>Desc.: Recovers all the items of the specified group<br>Res. (JSON, 200): <code>{ 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
 		<p>GET /sel/{name}/{index}<br>Desc.: Recovers a selected item from a group by its index<br>Res. (JSON, 200): <code>{'item':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
 		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Recovers a slice of a group, using a starting index and a quantity (range selection). Returns 200 if it recovered at least one item<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{}</code><br>NOTE: If you set quantity as 0, the item in the specified index and the rest of the items after the selected index will be chosen</p>
-		<p>POST /add/sin<br>JSON <code>{'name':'some group','item':['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue). Returns 200 if successful<br>NOTE: If the group does not exist, it will  be created automatically<br>NOTE: If the new item to add matches the head of an existing item, the new item will not be added<br>Res. (JSON, any): <code>{}</code></p>
-		<p>DELETE /all<br>Desc.: Deletes all groups. Returns 200 if successful<br>WARNING: This is dangerous<br>Res. (JSON, any): <code>{}</code></p>
-		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group and all of its content. Returns 200 if successful<br>Res. (JSON, any): <code>{}</code></p>
-		<p>DELETE /sel/{name}/{index}<br>Desc.: Select by index a specific item in a specific group and delete that item. Returns 200 if successful</p>
+		<p>POST /add/sin<br>JSON <code>{'name':'some group','item':['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue). Returns 200 if successful<br>NOTE: If the group does not exist, it will  be created automatically<br>NOTE: If the new item to add matches the head of an existing item, the new item will not be added<br>Res. (JSON, any): <code>{ 'status':{any} }</code></p>
+		<p>DELETE /all<br>Desc.: Deletes all groups. Returns 200 if successful<br>WARNING: This is dangerous<br>Res. (JSON, any): <code>{ 'status':{any} }</code></p>
+		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group and all of its content. Returns 200 if successful<br>Res. (JSON, any): <code>{ 'status':{any} }</code></p>
+		<p>DELETE /sel/{name}/{index}<br>Desc.: Select by index a specific item in a specific group and delete that item. Returns 200 if successful<br>Res. (JSON, any): <code>{ 'status':{any} }</code></p>
 	</body>
 </html>
 ";
@@ -83,6 +83,10 @@ impl Group
 
 	fn add(&mut self,value: Vec<String>) -> bool
 	{
+		if value.len()==0
+		{
+			return false;
+		};
 		let val_head=value.first().unwrap();
 		if self.has_head(val_head)
 		{
@@ -162,17 +166,16 @@ struct TheAppState
 struct POST_BringOne
 {
 	name:String,
-	elem:Vec<String>,
+	item:Vec<String>,
 }
 
-/*
+// WIP
 #[derive(Deserialize)]
 struct POST_BringMul
 {
 	name:String,
-	elem:Vec<Vec<String>>,
+	list:Vec<Vec<String>>
 }
-*/
 
 // HTTP Handlers
 
@@ -185,7 +188,7 @@ async fn get_status() -> HttpResponse
 }
 
 #[get("/help")]
-async fn page_help() -> HttpResponse
+async fn show_help() -> HttpResponse
 {
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(200).unwrap())
@@ -327,20 +330,20 @@ async fn get_index_range(from_path: web::Path<(String,usize,usize)>,app_data: we
 }
 
 #[post("/add/sin")]
-async fn post_queue_add(from_post: web::Json<POST_BringOne>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn post_queue_add1(from_post: web::Json<POST_BringOne>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
-	let mut status_code:u16={ if from_post.elem.len()==0 {403} else {200} };
+	let mut status_code:u16={ if from_post.item.len()==0 {403} else {200} };
 	if status_code==200
 	{
 		let new_name=from_post.name.clone();
-		let new_elem=from_post.elem.clone();
+		let new_item=from_post.item.clone();
 		let mut counter=app_data.counter.lock().unwrap();
 		match counter.quecol.get_mut(&new_name)
 		{
 			Some(fq) => {
-				if fq.add(new_elem.clone())
+				if fq.add(new_item.clone())
 				{
-					println!("\n- Added to existing queue\n  Name: {}\n  New: {:?}",&new_name,&new_elem);
+					println!("\n- Added to existing queue\n  Name: {}\n  New: {:?}",&new_name,&new_item);
 				}
 				else
 				{
@@ -349,7 +352,7 @@ async fn post_queue_add(from_post: web::Json<POST_BringOne>,app_data: web::Data<
 			},
 			None => {
 				let mut vec_master:Vec<Vec<String>>=Vec::new();
-				vec_master.push(new_elem);
+				vec_master.push(new_item);
 				println!("\n- Created a new queue\n  Name: {}\n  Content: {:?}",&new_name,&vec_master);
 				counter.quecol.insert(new_name, Group { data:vec_master });
 			},
@@ -360,6 +363,51 @@ async fn post_queue_add(from_post: web::Json<POST_BringOne>,app_data: web::Data<
 	.json(json!({ "status":status_code }))
 }
 
+// WIP
+
+#[post("/add/mul")]
+async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data<TheAppState>) -> HttpResponse
+{
+	let mut counter=app_data.counter.lock().unwrap();
+	let mut status_code:u16={ if from_post.list.len()==0 {403} else {200} };
+	let mut res_arr:Vec<bool>=Vec::new();
+	if status_code==200
+	{
+		if !counter.quecol.contains_key(&from_post.name)
+		{
+			status_code=404;
+		};
+	};
+	if status_code==200
+	{
+		let the_list=from_post.list;
+		let the_name=from_post.name;
+		let the_group=counter.quecol.get(&the_name).unwrap();
+		let added:usize=0;
+		for item in the_list.iter()
+		{
+			if the_group.add(item.to_vec())
+			{
+				added=added+1;
+				res_arr.push(true);
+			}
+			else
+			{
+				res_arr.push(false);
+			};
+		};
+		let res_arr_size:usize=res_arr.len();
+		if !(added==res_arr.len())
+		{
+			status_code=206;
+		};
+		println!("- Attempt to add items to a group\n  Name: {}\n  List: {:?}\n  Acc/Den.: {}/{} {:?}:\n",the_name,the_list,added,res_arr_size,&res_arr);
+	};
+	HttpResponse::Ok()
+	.status(StatusCode::from_u16(status_code).unwrap())
+	.json( if status_code==206 { json!({"status":status_code,"details":res_arr}) } else { json!({"status":status_code}) } )
+}
+
 #[delete("/all")]
 async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
 {
@@ -367,7 +415,7 @@ async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
 	let status_code:u16={ if counter.is_empty() { 400 } else { counter.quecol.clear();200 } };
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json(json!({}))
+	.json(json!({ "status":status_code }))
 }
 
 #[delete("/sel/{name}")]
@@ -390,7 +438,7 @@ async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 	};
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json(json!({}))
+	.json(json!({ "status":status_code }))
 }
 
 #[delete("/sel/{name}/{index}")]
@@ -421,7 +469,7 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 	};
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
-	.json(json!({}))
+	.json(json!({ "status":status_code }))
 }
 
 // Application setup
@@ -464,13 +512,14 @@ async fn main() -> std::io::Result<()>
 	HttpServer::new(move ||
 		App::new()
 			.app_data(persistent.clone())
-			.service(page_help)
+			.service(show_help)
 			.service(get_status)
 			.service(get_names)
 			.service(get_queue)
 			.service(get_index)
 			.service(get_index_range)
-			.service(post_queue_add)
+			.service(post_queue_add1)
+			.service(post_queue_add2)
 			.service(delete_all)
 			.service(delete_queue)
 			.service(delete_index)
