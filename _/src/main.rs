@@ -18,23 +18,24 @@ static RQUE_HELP:&str="
 	<body>
 		<h1>rQUE</h1>
 		<h2>How data is stored</h2>
-		<p>The data is stored in a large hashmap, where each key is a group name and each value is the content of the group</p>
+		<p>The data is stored in a large hashmap, where each key is the name of a group and each value is the content of the group</p>
 		<h3><code>{<br>'group 1' : [<br>['thing1'] , ['thing2','bonus']<br>] ,<br>'group2' : [<br>['thing1']<br>] ,<br>'another group' : [<br> ['headname1','data'] , ['headname2','data'], ['headname3','data','more data'] <br>] <br>}</code></h3>
-		<p>Groups are lists and each group name is unique<br>Each item inside a group is a list with the first index being the head of the item<br>2 or more items in the same group cannot have the same head, and this is checked automatically by rQUE before adding new items to a group<br>If a group does not exist when adding items, the group is created automatically before adding the new items</p>
-		<h2>API usage</h2>
+		<p>Groups are lists and each group name is unique<br>Each item inside a group is a list with the first index being the head of the item<br>Items cannot have a length of zero, they must at least have the head<br>2 or more items in the same group cannot have the same head, and this is checked automatically by the program before adding new items to a group<br>If a group does not exist when adding items, the group is created automatically before adding the new items</p>
+		<h2>API reference</h2>
+		<h3>Endpoints</h3>
 		<p>GET /help<br>Desc.: This help</p>
 		<p>GET /<br>Desc.: It always returns 200<br>Res. (200): <code>{}</code></p>
 		<p>GET /all<br>Desc.: Recovers a list of existing group names<br>Res. (JSON, 200): <code>{'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code></p>
 		<p>GET /sel/{name}<br>Desc.: Recovers all the items of the specified group<br>Res. (JSON, 200): <code>{ 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code></p>
 		<p>GET /sel/{name}/{index}<br>Desc.: Recovers a selected item from a group by its index<br>Res. (JSON, 200): <code>{'item':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code></p>
-		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Recovers a slice of a group by selecting in range<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code><br>NOTE: If you set quantity as 0, the item in the specified index and the rest of the items after the selected index will be chosen</p>
+		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Recovers a slice of a group by selecting in range<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code></p>
 		<p>POST /add/sin<br>JSON <code>{'name':'some group','item':['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue)<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
 		<p>POST /add/mul<br>JSON <code>{ 'name' : 'some group' , 'list' : ['head','content'] , ... , ['other','tail'] , ['thing'] }</code><br>Desc.: Adds multiple new items to a group. Returns 206 if partially successful<br>Res. (JSON, 200): <code>{ 'status' : 200 }</code><br>Res. (JSON, 206): <code>{ 'status' : 206 , details: [...] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
 		<p>DELETE /all<br>Desc.: Deletes all groups. Use with caution<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'error description' }</code></p>
 		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group along with its items<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
 		<p>DELETE /sel/{name}/{index}<br>Desc.: Deletes an item from a specified group and recovers it in the JSON response<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'item' : ['some item','other data'] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
 		<p>DELETE /sel/{name}/{index}/{qtty}<br>Desc.: Deletes multiple items selected in range and recovers the deleted elements in the JSON response<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'msg':'error description' }</code></p>
-		<h3>How does range select works?</h3>
+		<h3>Range selection</h3>
 		<p>Range selection works by declaring a starting index and a quantity<br>If the quantity is zero, all items after the starting index are selected, including the item in the starting index</p>
 		<p>Examples:</p>
 		<p>DELETE /sel/queue1/3/2<br>Deletes from the group 'queue1' the items no. 3 and 4, because the starting index is 3 and the quantity is 2</p>
@@ -42,6 +43,7 @@ static RQUE_HELP:&str="
 		<p>GET /sel/users/0/0<br>Gets all items from the group users, because the idex is 0 and the quantity is also 0</p>
 	</body>
 </html>
+
 ";
 
 static RQUE_ERROR_ZERO_GROUPS:&str="There are no groups yet";
@@ -299,7 +301,7 @@ async fn get_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Dat
 		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_GROUP_NOT_FOUND }));
 	};
 
-	let the_group=storage.quecol.get(&the_name).unwrap();
+	let the_group=storage.quecol.get_mut(&the_name).unwrap();
 	if the_group.is_empty()
 	{
 		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_GROUP_EMPTY }));
@@ -511,7 +513,7 @@ async fn delete_range(from_path: web::Path<(String,usize,usize)>,app_data: web::
 		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_GROUP_NOT_FOUND }));
 	};
 
-	let the_group=storage.quecol.get(&the_name).unwrap();
+	let the_group=storage.quecol.get_mut(&the_name).unwrap();
 	if the_group.is_empty()
 	{
 		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_GROUP_EMPTY }));
@@ -524,7 +526,7 @@ async fn delete_range(from_path: web::Path<(String,usize,usize)>,app_data: web::
 	}
 	else
 	{
-		println!("\n- Deleted multiple items from a group\n  Name: {}\n  List: {}",&the_name,&the_slice);
+		println!("\n- Deleted multiple items from a group\n  Name: {}\n  List: {:?}",&the_name,&the_slice);
 		json_res(200,json!({ "status":200,"slice":the_slice }))
 	}
 }
