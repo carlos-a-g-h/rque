@@ -391,7 +391,7 @@ async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Da
 		if added>0
 		{
 			let ok:bool=added==res_arr.len();
-			println!("\n- Added multiple items to a group\n  NewGroup?: {}\n  Name: {}\n  List: {:?}\n  Added/Total: {}/{} {:?}\n",new_group,the_name,the_list,added,res_arr.len(),&res_arr);
+			println!("\n- Added multiple items to a group\n  NewGroup?: {}\n  Name: {}\n  List: {:?}\n  Added/Total: {}/{} {:?}",new_group,the_name,the_list,added,res_arr.len(),&res_arr);
 			if ok { 200 } else { 206 }
 		}
 		else
@@ -489,7 +489,7 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 			}
 			else
 			{
-				println!("\n- Deleted an item from a group\n  Name: {}\n  Index: {}\nItem: {:?}",&the_name,the_index,&item);
+				println!("\n- Deleted an item from a group\n  Name: {}\n  Index: {}\n  Item: {:?}",&the_name,the_index,&item);
 				return json_res(200,json!({"status":200,"item":item}));
 			};
 		};
