@@ -165,12 +165,21 @@ struct POST_BringMul
 
 // HTTP Handlers
 
+fn json_res(sc: u16,payload: serde_json::Value) -> HttpResponse
+{
+	HttpResponse::Ok()
+	.status(StatusCode::from_u16(sc).unwrap())
+	.json( payload )
+}
+
 #[get("/")]
 async fn get_status() -> HttpResponse
 {
+	/*
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(200).unwrap())
-	.json( json!({}) )
+	.json( json!({}) )*/
+	json_res(200, json!({}) )
 }
 
 #[get("/help")]
@@ -366,7 +375,7 @@ async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data
 		{
 			counter.quecol.insert(the_name.to_string(),Group::new());
 		};
-		let &mut the_group=counter.quecol.get(the_name).unwrap();
+		let the_group=counter.quecol.get_mut(the_name).unwrap();
 		let mut added:usize=0;
 		for item in the_list.iter()
 		{
