@@ -364,7 +364,7 @@ async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data
 		let new_group:bool={ if counter.quecol.contains_key(the_name) { false } else { true } };
 		if new_group
 		{
-			counter.quecol.insert(the_name.to_string(),Group::new());
+			counter.quecol.insert(the_name.to_string(),{ let mut ng=Group::new();ng });
 		};
 		let the_group=counter.quecol.get(the_name).unwrap();
 		let mut added:usize=0;
