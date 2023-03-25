@@ -211,6 +211,7 @@ async fn get_names(app_data: web::Data<TheAppState>) -> HttpResponse
 		}
 	};
 
+	/*
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json(
@@ -222,7 +223,8 @@ async fn get_names(app_data: web::Data<TheAppState>) -> HttpResponse
 		{
 			json!({})
 		}
-	)
+	)*/
+	json_res(status_code, { if status_code==200 { json!({ "result":names }) } else { json!({}) } } )
 }
 
 #[get("/sel/{name}")]
@@ -252,9 +254,12 @@ async fn get_queue(name: web::Path<String>,app_data: web::Data<TheAppState>) -> 
 		}
 	};
 
+	/*
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json( if status_code==200 { json!({ "group":result }) } else { json!({}) } )
+	*/
+	json_res(status_code,{ if status_code==200 { json!({ "group":result }) } else { json!({}) } })
 }
 
 #[get("/sel/{name}/{index}")]
@@ -281,9 +286,12 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 		},
 		None=>404,
 	};
+	/*
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json( if status_code==200 { json!({ "item":item }) } else { json!({}) } )
+	*/
+	json_res(status_code,{ if status_code==200 { json!({ "item":item }) } else { json!({}) } })
 }
 
 #[get("/sel/{name}/{index}/{qtty}")]
@@ -319,9 +327,12 @@ async fn get_index_range(from_path: web::Path<(String,usize,usize)>,app_data: we
 			status_code=403;
 		};
 	};
+	/*
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json( if status_code==200 { json!({ "slice":the_slice }) } else { json!({}) } )
+	*/
+	json_res(status_code,{ if status_code==200 { json!({ "slice":the_slice }) } else { json!({}) } })
 }
 
 #[post("/add/sin")]
@@ -353,12 +364,13 @@ async fn post_queue_add1(from_post: web::Json<POST_BringOne>,app_data: web::Data
 			},
 		};
 	};
+	/*
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json(json!({ "status":status_code }))
+	*/
+	json_res(status_code,json!({ "status":status_code }))
 }
-
-// WIP
 
 #[post("/add/mul")]
 async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data<TheAppState>) -> HttpResponse
@@ -407,9 +419,12 @@ async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data
 			status_code=206;
 		};
 	};
+	/*
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json( if status_code==206 { json!({"status":status_code,"details":res_arr}) } else { json!({"status":status_code}) } )
+	*/
+	json_res(status_code,{ if status_code==206 { json!({"status":status_code,"details":res_arr}) } else { json!({"status":status_code}) } })
 }
 
 #[delete("/all")]
@@ -417,9 +432,12 @@ async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut counter=app_data.counter.lock().unwrap();
 	let status_code:u16={ if counter.is_empty() { 400 } else { counter.quecol.clear();200 } };
+	/*
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json(json!({ "status":status_code }))
+	*/
+	json_res(status_code,json!({ "status":status_code }))
 }
 
 #[delete("/sel/{name}")]
@@ -440,9 +458,12 @@ async fn delete_queue(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 		let contents=counter.quecol.remove(&name).unwrap();
 		println!("\n- Deleting this queue:\n  Name: {}\n  Items: {:?}",name,contents.data);
 	};
+	/*
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json(json!({ "status":status_code }))
+	*/
+	json_res(status_code,json!({ "status":status_code }))
 }
 
 #[delete("/sel/{name}/{index}")]
@@ -471,9 +492,12 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 			status_code=404;
 		};
 	};
+	/*
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16(status_code).unwrap())
 	.json(json!({ "status":status_code }))
+	*/
+	json_res(status_code,json!({ "status":status_code }))
 }
 
 // Application setup
