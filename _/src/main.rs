@@ -318,7 +318,7 @@ async fn get_index_range(from_path: web::Path<(String,usize,usize)>,app_data: we
 #[post("/add/sin")]
 async fn post_queue_add1(from_post: web::Json<POST_BringOne>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
-	let mut status_code:u16={ if from_post.item.len()==0 {403} else {200} };
+	let mut status_code:u16={ if from_post.item.len()==0 {406} else {200} };
 	if status_code==200
 	{
 		let new_name=from_post.name.clone();
@@ -355,16 +355,8 @@ async fn post_queue_add1(from_post: web::Json<POST_BringOne>,app_data: web::Data
 async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let mut counter=app_data.counter.lock().unwrap();
-	let mut status_code:u16={ if from_post.list.len()==0 {403} else {200} };
+	let mut status_code:u16={ if from_post.list.len()==0 {406} else {200} };
 	let mut res_arr:Vec<bool>=Vec::new();
-	if status_code==200
-	{
-		let name=&from_post.name;
-		if !counter.quecol.contains_key(name)
-		{
-			counter.quecol.insert(name.to_string(),);
-		};
-	};
 	if status_code==200
 	{
 		let the_name=&from_post.name;
@@ -389,6 +381,10 @@ async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data
 			};
 		};
 		let res_arr_size:usize=res_arr.len();
+		if added==0
+		{
+			status_code=406;
+		};
 		if status_code==200
 		{
 			println!("- Added multiple items to a group\n  isNew?: {}\n  Name: {}\n  List: {:?}\n  Added/Total: {}/{} {:?}:\n",new_group,the_name,the_list,added,res_arr_size,&res_arr);
