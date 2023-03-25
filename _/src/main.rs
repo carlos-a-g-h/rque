@@ -314,7 +314,7 @@ async fn post_group_addsin(from_post: web::Json<POST_BringOne>,app_data: web::Da
 	let the_item=&from_post.item;
 	let mut storage=app_data.holder.lock().unwrap();
 
-	let mut msg:&str;
+	let mut msg:&str="";
 	let status_code:u16=match storage.quecol.get_mut(the_name)
 	{
 		Some(fq)=>{
@@ -353,7 +353,7 @@ async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Da
 		if storage.quecol.contains_key(the_name) { false } else { storage.quecol.insert(the_name.to_string(),Group::new());true }
 	};
 
-	let mut msg:&str;
+	let mut msg:&str="";
 	let mut res_arr:Vec<bool>=Vec::new();
 	let status_code:u16={
 		let the_group=storage.quecol.get_mut(the_name).unwrap();
@@ -419,7 +419,7 @@ async fn delete_group(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 {
 	let mut storage=app_data.holder.lock().unwrap();
 
-	let mut msg:&str;
+	let mut msg:&str="";
 	let mut status_code:u16={ if storage.is_empty() { msg=RQUE_ERROR_ZERO_GROUPS;403 } else { 200 } };
 
 	let the_name=&from_path.into_inner();
@@ -445,7 +445,7 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 {
 	let mut storage=app_data.holder.lock().unwrap();
 
-	let mut msg:&str;
+	let mut msg:&str="";
 	let mut status_code:u16={ if storage.is_empty() { msg=RQUE_ERROR_ZERO_GROUPS;403 } else { 200 } };
 
 	let (the_name,the_index)=from_path.into_inner();
@@ -466,7 +466,7 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 		}
 		else
 		{
-			item=the_group.kick(the_index);
+			let item=the_group.kick(the_index);
 			if item.len()==0
 			{
 				msg=RQUE_ERROR_ITEM_NOT_FOUND;status_code=404;
