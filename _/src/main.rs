@@ -364,9 +364,9 @@ async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data
 		let new_group:bool={ if counter.quecol.contains_key(the_name) { false } else { true } };
 		if new_group
 		{
-			counter.quecol.insert(name.to_string(),Group::new());
+			counter.quecol.insert(the_name.to_string(),Group::new());
 		};
-		let mut the_group=counter.quecol.get(name).unwrap();
+		let mut the_group=counter.quecol.get(the_name).unwrap();
 		let mut added:usize=0;
 		for item in the_list.iter()
 		{
@@ -387,11 +387,11 @@ async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data
 		};
 		if status_code==200
 		{
-			println!("- Added multiple items to a group\n  isNew?: {}\n  Name: {}\n  List: {:?}\n  Added/Total: {}/{} {:?}:\n",new_group,the_name,the_list,added,res_arr_size,&res_arr);
+			println!("\n- Added multiple items to a group\n  isNew?: {}\n  Name: {}\n  List: {:?}\n  Added/Total: {}/{} {:?}:\n",new_group,the_name,the_list,added,res_arr_size,&res_arr);
 		}
 		if !(status_code==200) && new_group
 		{
-			println!("- New group left in blank after attempting to add multiple items\n  Name: {}",the_name);
+			println!("\n- A new group is empty after attempting to add multiple items\n  Name: {}",the_name);
 		};
 		if !(added==res_arr.len())
 		{
