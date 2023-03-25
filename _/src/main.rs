@@ -20,7 +20,7 @@ static RQUE_HTML_HELP:&str="
 		<h2>How data is stored</h2>
 		<p>In rQUE, data is stored in a large hashmap, where each key is a group name and each value is the content of the group</p>
 		<h3><code>{<br>'group 1' : [<br>['thing1'] , ['thing2','bonus']<br>] ,<br>'group2' : [<br>['thing1']<br>] ,<br>'another group' : [<br> ['headname1','data'] , ['headname2','data'], ['headname3','data','more data'] <br>] <br>}</code></h3>
-		<p>Groups are lists and each group name is unique<br>Each item inside a group is a list with the first index being the head of the item<br>2 or more items in the same group cannot have the same head, and this is checked automatically by rQUE before adding new items to a group</p>
+		<p>Groups are lists and each group name is unique<br>Each item inside a group is a list with the first index being the head of the item<br>2 or more items in the same group cannot have the same head, and this is checked automatically by rQUE before adding new items to a group<br>If a group does not exist when adding items, the group is created automatically before adding the new items</p>
 		<h2>API usage</h2>
 		<p>GET /help<br>Desc.: This help</p>
 		<p>GET /<br>Desc.: Always gives 200<br>Res. (200): <code>{}</code></p>
@@ -28,10 +28,11 @@ static RQUE_HTML_HELP:&str="
 		<p>GET /sel/{name}<br>Desc.: Recovers all the items of the specified group<br>Res. (JSON, 200): <code>{ 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
 		<p>GET /sel/{name}/{index}<br>Desc.: Recovers a selected item from a group by its index<br>Res. (JSON, 200): <code>{'item':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{}</code></p>
 		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Recovers a slice of a group, using a starting index and a quantity (range selection). Returns 200 if it recovered at least one item<br>Res. (JSON, 200): <code>{ 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{}</code><br>NOTE: If you set quantity as 0, the item in the specified index and the rest of the items after the selected index will be chosen</p>
-		<p>POST /add/sin<br>JSON <code>{'name':'some group','item':['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue). Returns 200 if successful<br>NOTE: If the group does not exist, it will  be created automatically<br>NOTE: If the new item to add matches the head of an existing item, the new item will not be added<br>Res. (JSON, any): <code>{ 'status':{any} }</code></p>
-		<p>DELETE /all<br>Desc.: Deletes all groups. Returns 200 if successful<br>WARNING: This is dangerous<br>Res. (JSON, any): <code>{ 'status':{any} }</code></p>
-		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group and all of its content. Returns 200 if successful<br>Res. (JSON, any): <code>{ 'status':{any} }</code></p>
-		<p>DELETE /sel/{name}/{index}<br>Desc.: Select by index a specific item in a specific group and delete that item. Returns 200 if successful<br>Res. (JSON, any): <code>{ 'status':{any} }</code></p>
+		<p>POST /add/sin<br>JSON <code>{'name':'some group','item':['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue). Returns 200 if successful<br>Res. (JSON, any): <code>{ 'status': {any} }</code></p>
+		<p>POST /add/mul<br>JSON <code>{ 'name' : 'some group' , 'list' : ['head','content'] , ... , ['other','tail'] , ['thing'] }</code><br>Desc.: Adds multiple new items to a group. Returns 200 if successful. Returns 206 if partially successful and a bonus field called 'details' is added to the JSON response body<br>Res. (JSON, 200): <code>{ 'status' : 200 }</code><br>Res. (JSON, 206): <code>{ 'status' : 206 , details: [...] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx }</code></p>
+		<p>DELETE /all<br>Desc.: Deletes all groups. Returns 200 if successful<br>WARNING: This is dangerous<br>Res. (JSON, any): <code>{ 'status': {any} }</code></p>
+		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group and all of its content. Returns 200 if successful<br>Res. (JSON, any): <code>{ 'status': {any} }</code></p>
+		<p>DELETE /sel/{name}/{index}<br>Desc.: Select by index a specific item in a specific group and delete that item. Returns 200 if successful<br>Res. (JSON, any): <code>{ 'status': {any} }</code></p>
 	</body>
 </html>
 ";
