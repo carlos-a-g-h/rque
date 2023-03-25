@@ -2,7 +2,7 @@
 
 ## Disclaimer
 
-This is not a database software, if you need a real non-SQL-like database for non-related unstructured data, use a real database softare such as Redis or MongoDB
+This is not a database software, if you need a real non-SQL-like database for non-related unstructured data, use real database software such as Redis or MongoDB
 
 ## Running the server
 
