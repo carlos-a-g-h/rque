@@ -27,7 +27,7 @@ If the argument for the port is NaN, the program will fallback to the default po
 
 API usage and data storage reference is explained in the [help.html](help.html) file
 
-You can also access the help doing a GET to '/help' route while running rQUE
+You can also access the help doing a GET to '/help' route while the server is running
 
 ## TODO list
 
