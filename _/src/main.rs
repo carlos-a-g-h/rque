@@ -366,7 +366,7 @@ async fn post_queue_add2(from_post: web::Json<POST_BringMul>,app_data: web::Data
 		{
 			counter.quecol.insert(the_name.to_string(),Group::new());
 		};
-		let mut the_group=counter.quecol.get(the_name).unwrap();
+		let the_group=counter.quecol.get(the_name).unwrap();
 		let mut added:usize=0;
 		for item in the_list.iter()
 		{
