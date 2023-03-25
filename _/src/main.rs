@@ -388,53 +388,6 @@ async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Da
 		}
 	};
 
-	/*
-	let mut counter=app_data.holder.lock().unwrap();
-	let mut status_code:u16={ if from_post.list.len()==0 {406} else {200} };
-	let mut res_arr:Vec<bool>=Vec::new();
-	if status_code==200
-	{
-		let the_name=&from_post.name;
-		let the_list=&from_post.list;
-		let new_group:bool={ if counter.quecol.contains_key(the_name) { false } else { true } };
-		if new_group
-		{
-			counter.quecol.insert(the_name.to_string(),Group::new());
-		};
-		let the_group=counter.quecol.get_mut(the_name).unwrap();
-		let mut added:usize=0;
-		for item in the_list.iter()
-		{
-			if the_group.add(item.to_vec())
-			{
-				added=added+1;
-				res_arr.push(true);
-			}
-			else
-			{
-				res_arr.push(false);
-			};
-		};
-		let res_arr_size:usize=res_arr.len();
-		if added==0
-		{
-			status_code=406;
-		};
-		if status_code==200
-		{
-			println!("\n- Added multiple items to a group\n  isNew?: {}\n  Name: {}\n  List: {:?}\n  Added/Total: {}/{} {:?}\n",new_group,the_name,the_list,added,res_arr_size,&res_arr);
-		}
-		if !(status_code==200) && new_group
-		{
-			println!("\n- A new group is empty after attempting to add multiple items\n  Name: {}",the_name);
-		};
-		if !(added==res_arr.len())
-		{
-			status_code=206;
-		};
-	};
-	*/
-
 	json_res(status_code,
 		match status_code
 		{
