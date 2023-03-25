@@ -25,10 +25,12 @@ If the argument for the port is NaN, the program will fallback to the default po
 
 ## API usage and data storage
 
-API usage and data storage reference is explained in the [help.html](help.html) file, also accessible through a GET to '/help' route
+API usage and data storage reference is explained in the [help.html](help.html) file
+
+You can also access the help doing a GET to '/help' route while running rQUE
 
 ## TODO list
 
-- Authentication
+- Basic authentication
 
-- Batch add/delete elements of a group
+- Add/delete multiple items
