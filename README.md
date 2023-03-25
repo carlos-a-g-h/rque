@@ -34,4 +34,8 @@ You can also access the help doing a GET to the '/help' route while the server i
 
 ## TODO list
 
+- ~~Adding/Removing multiple items~~
+
 - Basic authentication
+
+- Split into separate modules
