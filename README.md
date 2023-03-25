@@ -1,5 +1,9 @@
 # rQUE
 
+## Disclaimer
+
+This is not a database software, if you need a real non-SQL-like database for non-related unstructured data, use a real database softare such as Redis or MongoDB
+
 ## Running the server
 
 You can specify a port
@@ -21,7 +25,6 @@ Example: Run in a specific port
 ```
 
 If the argument for the port is NaN, the program will fallback to the default port
-
 
 ## API usage and data storage
 
