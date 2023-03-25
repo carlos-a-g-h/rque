@@ -10,7 +10,7 @@ on:
         default: false
 
       REL:
-        description: Create a GH release and add the builds as assets
+        description: Create a GH release and add the build(s) to it
         required: true
         type: boolean
         default: false
