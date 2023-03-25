@@ -235,7 +235,7 @@ async fn get_group(from_path: web::Path<String>,app_data: web::Data<TheAppState>
 		}
 	};
 
-	json_res(status_code,json!({ "status":status_code,"group":list }));
+	json_res(status_code,json!({ "status":status_code,"group":list }))
 }
 
 #[get("/sel/{name}/{index}")]
@@ -259,7 +259,7 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_GROUP_EMPTY }));
 	};
 
-	let the_item=the_group.get(the_index)
+	let the_item=the_group.get(the_index);
 	if the_item.len()==0
 	{
 		json_res(404,json!({"status":404,"msg":RQUE_ERROR_ITEM_NOT_FOUND}))
@@ -314,7 +314,7 @@ async fn post_group_addsin(from_post: web::Json<POST_BringOne>,app_data: web::Da
 	let the_item=&from_post.item;
 	let mut storage=app_data.holder.lock().unwrap();
 
-	let msg:&str;
+	let mut msg:&str;
 	let status_code:u16=match storage.quecol.get_mut(the_name)
 	{
 		Some(fq)=>{
@@ -334,9 +334,9 @@ async fn post_group_addsin(from_post: web::Json<POST_BringOne>,app_data: web::Da
 			storage.quecol.insert(the_name.to_string(), Group { data:ng });
 			200
 		}
-	}
+	};
 
-	json_res(status_code,{ if status_code==200 { json!({ "status":200 }) } else { json!({ "status":status_code,"msg":msg }) } })
+	json_res(status_code,if status_code==200 { json!({ "status":200 }) } else { json!({ "status":status_code,"msg":msg }) })
 }
 
 #[post("/add/mul")]
@@ -353,7 +353,7 @@ async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Da
 		if storage.quecol.contains_key(the_name) { false } else { storage.quecol.insert(the_name.to_string(),Group::new());true }
 	};
 
-	let msg:&str;
+	let mut msg:&str;
 	let mut res_arr:Vec<bool>=Vec::new();
 	let status_code:u16={
 		let the_group=storage.quecol.get_mut(the_name).unwrap();
@@ -404,13 +404,13 @@ async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
 	let mut storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
-		json_res(404,json!({ "status":status_code,"msg":RQUE_ERROR_ZERO_GROUPS }))
+		json_res(404,json!({ "status":404,"msg":RQUE_ERROR_ZERO_GROUPS }))
 	}
 	else
 	{
 		println!("\n- All groups have been deleted");
 		storage.quecol.clear();
-		json_res(200,json!({ "status":status_code }))
+		json_res(200,json!({ "status":200 }))
 	}
 }
 
@@ -419,7 +419,7 @@ async fn delete_group(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 {
 	let mut storage=app_data.holder.lock().unwrap();
 
-	let msg:&str;
+	let mut msg:&str;
 	let mut status_code:u16={ if storage.is_empty() { msg=RQUE_ERROR_ZERO_GROUPS;403 } else { 200 } };
 
 	let the_name=&from_path.into_inner();
@@ -432,12 +432,12 @@ async fn delete_group(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 	};
 	if status_code==200
 	{
-		let the_group=storage.quecol.remove(the_name).unwrap();
+		let mut the_group=storage.quecol.remove(the_name).unwrap();
 		println!("\n- Deleting this group:\n  Name: {}\n  Items: {:?}",the_name,&the_group.data);
 		the_group.data.clear();
 	};
 
-	json_res(status_code,{ if status_code==200 { json!({ "status":status_code }) } else { json!({ "status":status_code,"msg":msg }) } } )
+	json_res(status_code, if status_code==200 { json!({ "status":status_code }) } else { json!({ "status":status_code,"msg":msg }) } )
 }
 
 #[delete("/sel/{name}/{index}")]
@@ -445,7 +445,7 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 {
 	let mut storage=app_data.holder.lock().unwrap();
 
-	let mut:&str;
+	let mut msg:&str;
 	let mut status_code:u16={ if storage.is_empty() { msg=RQUE_ERROR_ZERO_GROUPS;403 } else { 200 } };
 
 	let (the_name,the_index)=from_path.into_inner();
