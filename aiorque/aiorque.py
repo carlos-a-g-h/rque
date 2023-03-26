@@ -115,25 +115,31 @@ class rque_Client:
 		await self.close()
 
 	async def get_item(self,gname,index):
-		res=await rque_get_item(gname,index,rque_home=self.addr,rque_port=self.port,session=self.session)
+		# res=await rque_get_item(gname,index,rque_home=self.addr,rque_port=self.port,session=self.session)
+		res=await rque_api(session=self.session,api_path=f"/sel/{gname}/{index}",rque_home=self.addr,rque_port=self.port)
 		return res
 
 	async def get_range(self,gname,index,qtty):
-		res=await rque_get_range(gname,index,qtty,rque_home=self.addr,rque_port=self.port,session=self.session)
+		# res=await rque_get_range(gname,index,qtty,rque_home=self.addr,rque_port=self.port,session=self.session)
+		res=await rque_api(session=self.session,api_path=f"/sel/{gname}/{index}/{qtty}",rque_home=self.addr,rque_port=self.port)
 		return res
 
 	async def add_sin(self,gname,item):
-		res=await rque_addsin(gname,item,rque_home=self.addr,rque_port=self.port,session=self.session)
+		# res=await rque_addsin(gname,item,rque_home=self.addr,rque_port=self.port,session=self.session)
+		res=await rque_api(session=self.session,the_method="POST",the_json={"name":gname,"item":item},api_path="/add/sin",rque_home=self.addr,rque_port=self.port)
 		return res
 
 	async def add_mul(self,gname,item_list):
-		res=await rque_addmul(gname,item_list,rque_home=self.addr,rque_port=self.port,session=self.session)
+		# res=await rque_addmul(gname,item_list,rque_home=self.addr,rque_port=self.port,session=self.session)
+		res=await rque_api(session=self.session,the_method="POST",the_json={"name":gname,"list":item_list},api_path="/add/mul",rque_home=self.addr,rque_port=self.port)
 		return res
 
 	async def del_item(self,gname,index):
-		res=await rque_del_item(gname,index,rque_home=self.addr,rque_port=self.port,session=self.session)
+		# res=await rque_del_item(gname,index,rque_home=self.addr,rque_port=self.port,session=self.session)
+		res=await rque_api(session=self.session,the_method="DELETE",api_path=f"/sel/{gname}/{index}",rque_home=self.addr,rque_port=self.port)
 		return res
 
 	async def del_range(self,gname,index,qtty):
-		res=await rque_del_range(gname,index,qtty,rque_home=self.addr,rque_port=self.port,session=self.session)
+		# res=await rque_del_range(gname,index,qtty,rque_home=self.addr,rque_port=self.port,session=self.session)
+		res=await rque_api(session=self.session,the_method="DELETE",api_path=f"/sel/{gname}/{index}/{qtty}",rque_home=self.addr,rque_port=self.port)
 		return res
