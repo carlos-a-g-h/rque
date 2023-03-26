@@ -104,9 +104,9 @@ class rque_Client:
 	async def close(self):
 		if self.session:
 			await self.session.close()
-			print("[!] Client closed")
+			print("\n[!] Client closed")
 		if not self.session:
-			print("[!] Nothing to close")
+			print("\n[!] Nothing to close")
 
 	async def __aenter__(self):
 		return self
