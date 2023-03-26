@@ -2,12 +2,12 @@
 
 ## Features
 
-- HTTP web server [rQUE](_) written in blazingly fast AF Rust using the Actix Web framework
+- HTTP web server [rQUE](_) written in blazingly FAF Rust and using the Actix Web framework
 - Python client [aiorque](aiorque) that uses aiohttp.Client
 
 ## Disclaimer
 
-This does not count as an actual database software, if you need a real non-SQL-like database for non-related unstructured data, use real-deal database software such as Redis or MongoDB
+This program stores data in memory but for temporary uses, it is not database oriented. If you need a real non-SQL-like database for non-related, persistent and unstructured data, use real-deal database software such as Redis or MongoDB
 
 ## Documentation
 
