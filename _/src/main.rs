@@ -349,7 +349,7 @@ async fn post_group_addsin(from_post: web::Json<POST_BringOne>,app_data: web::Da
 		None=>{
 			let mut ng:Vec<Vec<String>>=Vec::new();
 			ng.push(the_item.to_vec());
-			println!("\n- Created a new queue\n  Name: {}\n  Content: {:?}",the_name,&ng);
+			println!("\n- Created a new group\n  Name: {}\n  Content: {:?}",the_name,&ng);
 			storage.quecol.insert(the_name.to_string(), Group { data:ng });
 			200
 		}
