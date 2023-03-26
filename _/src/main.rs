@@ -16,7 +16,7 @@ static RQUE_ERROR_ITEM_NOT_FOUND:&str="The item that correspond the specified in
 static RQUE_ERROR_ITEM_NOT_VALID:&str="The provided item is not valid";
 static RQUE_ERROR_SLICE:&str="Wrong index";
 
-static RQUE_INFO:&str="Carlos Alberto González Hernández - 2023-03-26"
+static RQUE_INFO:&str="Written by Carlos Alberto González Hernández - 2023-03-26";
 static RQUE_HELP:&str="
 <!DOCTYPE html>
 <html lang=\"en\">
