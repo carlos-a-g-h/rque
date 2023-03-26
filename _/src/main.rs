@@ -14,7 +14,7 @@ static RQUE_ERROR_GROUP_NOT_FOUND:&str="The specified group does not exist";
 static RQUE_ERROR_GROUP_EMPTY:&str="The specified group is empty";
 static RQUE_ERROR_ITEM_NOT_FOUND:&str="The item that correspond the specified index does not exist";
 static RQUE_ERROR_ITEM_NOT_VALID:&str="The provided item is not valid";
-static RQUE_ERROR_SLICE:&str="Wrong index";
+static RQUE_ERROR_SLICE:&str="Try lowering the starting index";
 
 static RQUE_INFO:&str="Written by Carlos Alberto González Hernández - 2023-03-26";
 static RQUE_HELP:&str="
