@@ -1,5 +1,10 @@
 # rQUE
 
+## Features
+
+- HTTP web server [rQUE](_) written in blazingly fast AF Rust using the Actix Web framework
+- Python client [aiorque](aiorque) that uses aiohttp.Client
+
 ## Disclaimer
 
 This does not count as an actual database software, if you need a real non-SQL-like database for non-related unstructured data, use real-deal database software such as Redis or MongoDB
@@ -30,7 +35,7 @@ If the argument for the port is NaN, the program will fallback to the default po
 
 API usage and data storage reference is explained in the [help.html](help.html) file
 
-You can also access the help doing a GET to the '/help' route while the server is running
+You can also read the help in your browser while the server is running by accessing '/help'
 
 ## TODO list
 
