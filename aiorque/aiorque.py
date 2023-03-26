@@ -93,6 +93,7 @@ class rque_Client:
 
 		if session:
 			self.session=session
+			self.owner=False
 
 		if not session:
 			self.session=aiohttp.ClientSession()
@@ -100,8 +101,13 @@ class rque_Client:
 				"Content-Type":"application/json",
 				"Accept":"application/json",
 			})
+			self.owner=True
 
 	async def close(self):
+		if not self.owner:
+			print("\n[!] Not the owner of this session")
+			return
+
 		if self.session:
 			await self.session.close()
 			print("\n[!] Client closed")
