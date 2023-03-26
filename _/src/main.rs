@@ -6,7 +6,17 @@ use actix_web::http::StatusCode;
 use serde::Deserialize;
 use serde_json::json;
 
+
 static RQUE_DEFAULT_PORT:u16=8080;
+
+static RQUE_ERROR_ZERO_GROUPS:&str="There are no groups yet";
+static RQUE_ERROR_GROUP_NOT_FOUND:&str="The specified group does not exist";
+static RQUE_ERROR_GROUP_EMPTY:&str="The specified group is empty";
+static RQUE_ERROR_ITEM_NOT_FOUND:&str="The item that correspond the specified index does not exist";
+static RQUE_ERROR_ITEM_NOT_VALID:&str="The provided item is not valid";
+static RQUE_ERROR_SLICE:&str="Wrong index";
+
+static RQUE_INFO:&str="Carlos Alberto González Hernández - 2023-03-26"
 static RQUE_HELP:&str="
 <!DOCTYPE html>
 <html lang=\"en\">
@@ -41,17 +51,10 @@ static RQUE_HELP:&str="
 		<p>Examples:</p>
 		<p>DELETE /sel/queue1/3/2<br>Deletes from the group 'queue1' the items no. 3 and 4, because the starting index is 3 and the quantity is 2</p>
 		<p>DELETE /sel/stack/4/0<br>Deletes all items in the group 'stack' leaving only the items 0, 1, 2 and 3. In this case the starting index is 3 and all the other items after the item no. 3 are also selected because the quantity is set to 0</p>
-		<p>GET /sel/users/0/0<br>Gets all items from the group users, because the idex is 0 and the quantity is also 0</p>
+		<p>GET /sel/users/0/0<br>Gets all items from the group 'users', because the index is 0 and the quantity is also 0</p>
 	</body>
 </html>
 ";
-
-static RQUE_ERROR_ZERO_GROUPS:&str="There are no groups yet";
-static RQUE_ERROR_GROUP_NOT_FOUND:&str="The specified group does not exist";
-static RQUE_ERROR_GROUP_EMPTY:&str="The specified group is empty";
-static RQUE_ERROR_ITEM_NOT_FOUND:&str="The item that correspond the specified index does not exist";
-static RQUE_ERROR_ITEM_NOT_VALID:&str="The provided item is not valid";
-static RQUE_ERROR_SLICE:&str="Wrong index";
 
 // Group struct
 
@@ -562,7 +565,7 @@ fn get_port() -> u16
 #[actix_web::main]
 async fn main() -> std::io::Result<()>
 {
-	println!("\n[ rQUE ]");
+	println!("\n[ rQUE ]\n\n{}",RQUE_INFO);
 	let port=get_port();
 	println!("\nChosen port: {}",port);
 	let pdata=web::Data::new(TheAppState{
