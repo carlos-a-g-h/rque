@@ -8,9 +8,39 @@
 	<body>
 		<h1>rQUE</h1>
 		<h2>How data is stored</h2>
+
+		<h3>Schema</h3>
 		<p>The data is stored in a large hashmap, where each key is the name of a group and each value is the content of the group</p>
-		<h3><code>{<br>'group 1' : [<br>['thing1'] , ['thing2','bonus']<br>] ,<br>'group2' : [<br>['thing1']<br>] ,<br>'another group' : [<br> ['headname1','data'] , ['headname2','data'], ['headname3','data','more data'] <br>] <br>}</code></h3>
-		<p>Groups are lists and each group name is unique<br>Each item inside a group is a list with the first index being the head of the item<br>Items cannot have a length of zero, they must at least have the head<br>2 or more items in the same group cannot have the same head, and this is checked automatically by the program before adding new items to a group<br>If a group does not exist when adding items, the group is created automatically before adding the new items</p>
+		<p>
+			<strong>
+				<code>
+<pre>
+{
+	'group 1':
+	[
+		['thing1'] ,
+		['thing2','bonus']
+	],
+
+	'group2':
+	[
+		['thing1']
+	],
+
+	'another group':
+	[
+		['headname1','data'],
+		['headname2','data'],
+		['headname3','data','more data']
+	]
+}
+
+</pre>
+				</code>
+			</strong>
+		</p>
+		<h3>Rules</h3>
+		<p>→ Groups are lists and each group name is unique<br>→ Each item inside a group is a list with the first index being the head of the item<br>→ Items cannot have a length of zero, they must at least have the head<br>→ 2 or more items in the same group cannot have the same head, and this is checked automatically by the program before adding new items to a group<br>→ If a group does not exist when adding items, the group is created automatically before adding the new items<br>→ A group can only exist as empty if all of its items have been removed manually</p>
 		<h2>API reference</h2>
 		<h3>Endpoints</h3>
 		<p>GET requests read existing data only, POST requests add data, and DELETE requests remove/steal data<br>All data modifications with POST and DELETE requests are printed in the console output</p>
@@ -31,6 +61,6 @@
 		<p>Examples:</p>
 		<p>DELETE /sel/queue1/3/2<br>Deletes from the group 'queue1' the items no. 3 and 4, because the starting index is 3 and the quantity is 2</p>
 		<p>DELETE /sel/stack/4/0<br>Deletes all items in the group 'stack' leaving only the items 0, 1, 2 and 3. In this case the starting index is 3 and all the other items after the item no. 3 are also selected because the quantity is set to 0</p>
-		<p>GET /sel/users/0/0<br>Gets all items from the group 'users', because the index is 0 and the quantity is also 0</p>
+		<p>GET /sel/users/0/0<br>Gets all items from the group users, because the idex is 0 and the quantity is also 0</p>
 	</body>
 </html>
