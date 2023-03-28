@@ -45,9 +45,9 @@
 		<h3>Endpoints</h3>
 		<p>GET requests read existing data only, POST requests add data, and DELETE requests remove/steal data<br>All data modifications with POST and DELETE requests are printed in the console output</p>
 		<p>GET /help<br>Desc.: This help</p>
-		<p>GET /<br>Desc.: It always returns 200<br>Res. (200): <code>{}</code></p>
+		<p>GET /<br>Desc.: It always returns HTTP 200<br>Res. (200): <code>{}</code></p>
 		<p>GET /all<br>Desc.: Recovers a list of existing group names<br>Res. (JSON, 200): <code>{ 'status':200 , 'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<p>GET /sel/{name}<br>Desc.: Recovers all the items of the specified group<br>Res. (JSON, 200): <code>{ 'status':200 , 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
+		<p>GET /sel/{name}<br>Desc.: Recovers all the items of the specified group. Returns HTTP 206 (Partial response) if the group is empty<br>Res. (JSON, 200): <code>{ 'status':200 , 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 206): <code>{ 'status':206 , 'group':[] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
 		<p>GET /sel/{name}/{index}<br>Desc.: Recovers a selected item from a group by its index<br>Res. (JSON, 200): <code>{ 'status':200 ,'item':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
 		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Recovers a slice of a group by selecting in range<br>Res. (JSON, 200): <code>{ 'status':200 , 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
 		<p>POST /add/sin<br>JSON <code>{'name':'some group','item':['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue)<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
