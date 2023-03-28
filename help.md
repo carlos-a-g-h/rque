@@ -60,12 +60,11 @@ Any modifications made with POST and DELETE requests are printed in the console 
 
 ```
 GET /help
-Desc.: Help page
+Desc.: A help page like the one you're reading, but in HTML
 ```
-
 ```
 GET /
-Desc.: It always returns 200
+Desc.: It always returns HTTP 200
 Res. (200): {}
 ```
 ```
@@ -76,8 +75,9 @@ Res. (JSON, 4xx): { 'status':4xx , 'msg':'error description' }
 ```
 ```
 GET /sel/{name}
-Desc.: Recovers all the items of the specified group
+Desc.: Recovers all the items of the specified group. It returns HTTP 206 (partial) if the group is empty
 Res. (JSON, 200): { 'status':200 , 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }
+Res. (JSON, 206): { 'status':206 , 'group' : [] }
 Res. (JSON, 4xx): { 'status':4xx , 'msg':'error description' }
 ```
 ```
@@ -102,7 +102,7 @@ Res. (JSON, 4xx): { 'status': 4xx , 'msg' : 'error description' }
 ```
 POST /add/mul
 JSON { 'name' : 'some group' , 'list' : ['head','content'] , ... , ['other','tail'] , ['thing'] }
-Desc.: Adds multiple new items to a group. Returns 206 if partially successful
+Desc.: Adds multiple new items to a group. Returns HTTP 206 if partially successful
 Res. (JSON, 200): { 'status' : 200 }
 Res. (JSON, 206): { 'status' : 206 , details: [...] }
 Res. (JSON, 4xx): { 'status' : 4xx , 'msg' : 'error description' }
