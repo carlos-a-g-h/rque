@@ -80,8 +80,6 @@ jobs:
         sudo apt install -y mingw-w64
         rustup target add x86_64-pc-windows-gnu
         RUSTFLAGS='-C target-feature=+crt-static' cargo build --release --verbose --target x86_64-pc-windows-gnu
-        # RUSTFLAGS='-C target-feature=+crt-static -C linker=x86_64-w64-mingw32-gcc' cargo build --release --verbose --target x86_64-pc-windows-gnu
-        # RUSTFLAGS='-C target-feature=+crt-static' CARGO_TARGET_X86_64-PC-WINDOWS-GNU_LINKER='x86_64-pc-windows-gnu-gcc' cargo build --release --verbose --target x86_64-pc-windows-gnu
         BUILD_WIN=$(find target/x86_64-pc-windows-gnu|grep /"${{ env.NAME_APP }}.exe"$)
         echo "BUILD_WIN = $BUILD_WIN"
         if [ -f "$BUILD_WIN" ]
