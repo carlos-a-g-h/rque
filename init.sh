@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cargo init --vcs=none rque
+cargo install --vcs=none rque
 cat _/dep.txt >> rque/Cargo.toml
 rm _/dep.txt
 cp -va _/* rque/
