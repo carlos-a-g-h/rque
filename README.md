@@ -7,7 +7,7 @@ A simple REST-like in-memory data storage server
 ## Features
 
 - HTTP web server [rQUE](_) written in blazingly FAF Rust and using the Actix Web framework
-- Python client [aiorque](aiorque) that uses aiohttp.Client
+- Python client module [aiorque](aiorque) that uses aiohttp.Client under the hood
 
 ## Disclaimer
 
