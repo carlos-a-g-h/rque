@@ -90,43 +90,37 @@ async def rque_del_range(group_name,index,qtty,rque_home=_rque_default_addr,rque
 
 class rque_Client:
 
-	def __init__(self,session=None,addr=_rque_default_addr,port=_rque_default_port):
+	def __init__(self,own_session=True,addr=_rque_default_addr,port=_rque_default_port):
 		self.addr=addr
 		self.port=port
 
-		if session:
-			self.session=session
-			self.owner=False
+		if not own_session:
+			self.session=None
 
-		if not session:
+		if own_session:
 			self.session=aiohttp.ClientSession()
-			self.prep_session()
-			self.owner=True
+			self.session.headers.update({
+				"Content-Type":"application/json",
+				"Accept":"application/json",
+			})
 
-	def prep_session(self):
-		self.session.headers.update({
-			"Content-Type":"application/json",
-			"Accept":"application/json",
-		})
-		if "Host" in session.headers:
-			session.headers.pop("Host")
+			if "Host" in self.session.headers:
+				self.session.headers.pop("Host")
 
-		if "Origin" in session.headers:
-			session.headers.pop("Origin")
+			if "Origin" in self.session.headers:
+				self.session.headers.pop("Origin")
 
-		if "Referer" in session.headers:
-			session.headers.pop("Referer")
+			if "Referer" in self.session.headers:
+				self.session.headers.pop("Referer")
+
+			print(self.session.headers)
 
 	async def close(self):
-		if not self.owner:
-			print("\n[!] Not the owner of this session")
+		if not self.session:
+			print("\n[!] Not a session owner")
 			return
 
-		if self.session:
-			await self.session.close()
-			print("\n[!] Client closed")
-		if not self.session:
-			print("\n[!] Nothing to close")
+		await self.session.close()
 
 	async def __aenter__(self):
 		return self
@@ -134,30 +128,66 @@ class rque_Client:
 	async def __aexit__(self,*excinfo):
 		await self.close()
 
-	async def get_item(self,gname,index):
-		res=await rque_api(session=self.session,api_path=f"/sel/{gname}/{index}",rque_home=self.addr,rque_port=self.port)
+	async def get_item(self,gname,index,session=None):
+
+		if session==None:
+			s=self.session
+		else:
+			s=session
+
+		res=await rque_api(session=s,api_path=f"/sel/{gname}/{index}",rque_home=self.addr,rque_port=self.port)
 		return res
 
 	async def get_group(self,gname):
-		res=await rque_api(session=self.session,api_path=f"/sel/{gname}",rque_home=self.addr,rque_port=self.port)
+		if session==None:
+			s=self.session
+		else:
+			s=session
+
+		res=await rque_api(session=s,api_path=f"/sel/{gname}",rque_home=self.addr,rque_port=self.port)
 		return res
 
-	async def get_range(self,gname,index,qtty):
-		res=await rque_api(session=self.session,api_path=f"/sel/{gname}/{index}/{qtty}",rque_home=self.addr,rque_port=self.port)
+	async def get_range(self,gname,index,qtty,session=None):
+		if session==None:
+			s=self.session
+		else:
+			s=session
+
+		res=await rque_api(session=s,api_path=f"/sel/{gname}/{index}/{qtty}",rque_home=self.addr,rque_port=self.port)
 		return res
 
-	async def add_sin(self,gname,item):
-		res=await rque_api(session=self.session,the_method="POST",the_json={"name":gname,"item":item},api_path="/add/sin",rque_home=self.addr,rque_port=self.port)
+	async def add_sin(self,gname,item,session=None):
+		if session==None:
+			s=self.session
+		else:
+			s=session
+
+		res=await rque_api(session=s,the_method="POST",the_json={"name":gname,"item":item},api_path="/add/sin",rque_home=self.addr,rque_port=self.port)
 		return res
 
-	async def add_mul(self,gname,item_list):
-		res=await rque_api(session=self.session,the_method="POST",the_json={"name":gname,"list":item_list},api_path="/add/mul",rque_home=self.addr,rque_port=self.port)
+	async def add_mul(self,gname,item_list,session=None):
+		if session==None:
+			s=self.session
+		else:
+			s=session
+
+		res=await rque_api(session=s,the_method="POST",the_json={"name":gname,"list":item_list},api_path="/add/mul",rque_home=self.addr,rque_port=self.port)
 		return res
 
-	async def del_item(self,gname,index):
-		res=await rque_api(session=self.session,the_method="DELETE",api_path=f"/sel/{gname}/{index}",rque_home=self.addr,rque_port=self.port)
+	async def del_item(self,gname,index,session=None):
+		if session==None:
+			s=self.session
+		else:
+			s=session
+
+		res=await rque_api(session=s,the_method="DELETE",api_path=f"/sel/{gname}/{index}",rque_home=self.addr,rque_port=self.port)
 		return res
 
-	async def del_range(self,gname,index,qtty):
-		res=await rque_api(session=self.session,the_method="DELETE",api_path=f"/sel/{gname}/{index}/{qtty}",rque_home=self.addr,rque_port=self.port)
+	async def del_range(self,gname,index,qtty,session=None):
+		if session==None:
+			s=self.session
+		else:
+			s=session
+
+		res=await rque_api(session=s,the_method="DELETE",api_path=f"/sel/{gname}/{index}/{qtty}",rque_home=self.addr,rque_port=self.port)
 		return res
