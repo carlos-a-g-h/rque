@@ -1,5 +1,9 @@
 # rQUE
 
+## What is rQUE?
+
+A simple REST-like in-memory data storage server
+
 ## Features
 
 - HTTP web server [rQUE](_) written in blazingly FAF Rust and using the Actix Web framework
