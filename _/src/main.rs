@@ -109,17 +109,16 @@ impl Group
 		{
 			return false;
 		};
-		let mut has_it=false;
+		let mut repeated=0;
 		for elem in &self.data
 		{
 			let elem_head=elem.first().unwrap();
 			if elem_head==head
 			{
-				has_it=true;
-				break;
+				repeated=repeated+1;
 			};
 		};
-		has_it
+		if repeated>0 { true } else { false }
 	}
 
 	fn add(&mut self,value: Vec<String>) -> bool
