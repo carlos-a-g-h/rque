@@ -16,7 +16,7 @@ static RQUE_ERROR_ITEM_NOT_FOUND:&str="The item that correspond the specified in
 static RQUE_ERROR_ITEM_NOT_VALID:&str="The provided item is not valid";
 static RQUE_ERROR_SLICE:&str="Try lowering the starting index";
 
-static RQUE_INFO:&str="Written by Carlos Alberto González Hernández - 2023-03-26";
+static RQUE_INFO:&str="Written by Carlos Alberto González Hernández - 2023-04-02";
 static RQUE_HELP:&str="
 <!DOCTYPE html>
 <html lang=\"en\">
@@ -197,7 +197,6 @@ struct POST_BringOne
 	item:Vec<String>,
 }
 
-// WIP
 #[derive(Deserialize)]
 struct POST_BringMul
 {
@@ -519,7 +518,7 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 			let item=the_group.kick(the_index);
 			if the_group.is_empty()
 			{
-				storage.quecol.remove(the_name.clone()).unwrap();
+				storage.quecol.remove(&the_name).unwrap();
 				println!("\n- Deleted empty group\n  Name: {}",&the_name);
 			};
 			if item.len()==0
@@ -558,7 +557,7 @@ async fn delete_range(from_path: web::Path<(String,usize,usize)>,app_data: web::
 	let the_slice:Vec<Vec<String>>=the_group.get_range(index,qtty,true);
 	if the_group.is_empty()
 	{
-		storage.quecol.remove(the_name.clone()).unwrap();
+		storage.quecol.remove(&the_name).unwrap();
 		println!("\n- Deleted empty group\n  Name: {}",&the_name);
 	};
 	if the_slice.len()==0
