@@ -37,6 +37,8 @@ The documentation is [here](help.md)
 
 You can also read the help in your browser while the server is running by accessing the '/help' route
 
+You can read the changelog [here](CHANGELOG.md)
+
 ## TODO list
 
 - ~~Adding/Removing multiple items~~
