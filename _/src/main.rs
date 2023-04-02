@@ -59,7 +59,7 @@ static RQUE_HELP:&str="
 			</strong>
 		</p>
 		<h3>Rules</h3>
-		<p>→ Groups are lists and each group name is unique<br>→ Each item inside a group is a list with the first index being the head of the item<br>→ Items cannot have a length of zero, they must at least have the head<br>→ 2 or more items in the same group cannot have the same head, and this is checked automatically by the program before adding new items to a group<br>→ If a group does not exist when adding items, the group is created automatically before adding the new items<br>→ A group can only exist as empty if all of its items have been removed manually</p>
+		<p>→ Groups are lists and each group name is unique<br>→ Each item inside a group is a list with the first index being the head of the item<br>→ Items cannot have a length of zero, they must at least have the head<br>→ 2 or more items in the same group cannot have the same head, and this is checked automatically by the program before adding new items to a group<br>→ If a group does not exist when adding items, the group is created automatically before adding the new items<br>→ A group cannot be empty: when a group is left empty after removing all of its items, the group is automatically deleted</p>
 
 		<h2>API reference</h2>
 		<h3>Endpoints</h3>
