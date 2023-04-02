@@ -96,15 +96,15 @@ Res. (JSON, 4xx): { 'status':4xx , 'msg':'error description' }
 POST /add/sin
 JSON {'name':'some group','item':['head','content',...,'tail']}
 Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue)
-Res. (JSON, 200): { 'status': 200 }
+Res. (JSON, 200): { 'status': 200 , 'newgroup':newgroup }
 Res. (JSON, 4xx): { 'status': 4xx , 'msg' : 'error description' }
 ```
 ```
 POST /add/mul
 JSON { 'name' : 'some group' , 'list' : ['head','content'] , ... , ['other','tail'] , ['thing'] }
 Desc.: Adds multiple new items to a group. Returns HTTP 206 if partially successful
-Res. (JSON, 200): { 'status' : 200 }
-Res. (JSON, 206): { 'status' : 206 , details: [...] }
+Res. (JSON, 200): { 'status' : 200 , 'newgroup' : newgroup }
+Res. (JSON, 206): { 'status' : 206 , 'newgroup' : newgroup , details: [...] }
 Res. (JSON, 4xx): { 'status' : 4xx , 'msg' : 'error description' }
 ```
 ```
