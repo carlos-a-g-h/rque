@@ -70,8 +70,8 @@ static RQUE_HELP:&str="
 		<p>GET /sel/{name}<br>Desc.: Recovers all the items of the specified group. Returns HTTP 206 (Partial response) if the group is empty<br>Res. (JSON, 200): <code>{ 'status':200 , 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 206): <code>{ 'status':206 , 'group':[] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
 		<p>GET /sel/{name}/{index}<br>Desc.: Recovers a selected item from a group by its index<br>Res. (JSON, 200): <code>{ 'status':200 ,'item':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
 		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Recovers a slice of a group by selecting in range<br>Res. (JSON, 200): <code>{ 'status':200 , 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<p>POST /add/sin<br>JSON <code>{'name':'some group','item':['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue)<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
-		<p>POST /add/mul<br>JSON <code>{ 'name' : 'some group' , 'list' : ['head','content'] , ... , ['other','tail'] , ['thing'] }</code><br>Desc.: Adds multiple new items to a group. Returns 206 if partially successful<br>Res. (JSON, 200): <code>{ 'status' : 200 }</code><br>Res. (JSON, 206): <code>{ 'status' : 206 , details: [...] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
+		<p>POST /add/sin<br>JSON <code>{ 'name':'some group' , 'newgroup':bool , 'item': ['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue)<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
+		<p>POST /add/mul<br>JSON <code>{ 'name':'some group' , 'newgroup':bool , 'list': ['head','content'] , ... , ['other','tail'] , ['thing'] }</code><br>Desc.: Adds multiple new items to a group. Returns 206 if partially successful<br>Res. (JSON, 200): <code>{ 'status' : 200 }</code><br>Res. (JSON, 206): <code>{ 'status' : 206 , details: [...] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
 		<p>DELETE /all<br>Desc.: Deletes all groups. Use with caution<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'error description' }</code></p>
 		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group along with its items<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
 		<p>DELETE /sel/{name}/{index}<br>Desc.: Deletes an item from a specified group and recovers it in the JSON response<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'item' : ['some item','other data'] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
@@ -363,6 +363,7 @@ async fn post_group_addsin(from_post: web::Json<POST_BringOne>,app_data: web::Da
 	let mut storage=app_data.holder.lock().unwrap();
 
 	let mut msg:&str="";
+	let mut newgroup:bool=false;
 	let status_code:u16=match storage.quecol.get_mut(the_name)
 	{
 		Some(fq)=>{
@@ -380,11 +381,12 @@ async fn post_group_addsin(from_post: web::Json<POST_BringOne>,app_data: web::Da
 			ng.push(the_item.to_vec());
 			println!("\n- Created a new group\n  Name: {}\n  Content: {:?}",the_name,&ng);
 			storage.quecol.insert(the_name.to_string(), Group { data:ng });
+			newgroup=true;
 			200
 		}
 	};
 
-	json_res(status_code,if status_code==200 { json!({ "status":200 }) } else { json!({ "status":status_code,"msg":msg }) })
+	json_res(status_code,if status_code==200 { json!({ "status":200,"newgroup":newgroup }) } else { json!({ "status":status_code,"msg":msg }) })
 }
 
 #[post("/add/mul")]
@@ -397,7 +399,7 @@ async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Da
 
 	let the_name=&from_post.name;
 	let mut storage=app_data.holder.lock().unwrap();
-	let new_group:bool={
+	let newgroup:bool={
 		if storage.quecol.contains_key(the_name) { false } else { storage.quecol.insert(the_name.to_string(),Group::new());true }
 	};
 
@@ -423,12 +425,12 @@ async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Da
 		if added>0
 		{
 			let ok:bool=added==res_arr.len();
-			println!("\n- Added multiple items to a group\n  NewGroup?: {}\n  Name: {}\n  List: {:?}\n  Added/Total: {}/{} {:?}",new_group,the_name,the_list,added,res_arr.len(),&res_arr);
+			println!("\n- Added multiple items to a group\n  NewGroup?: {}\n  Name: {}\n  List: {:?}\n  Added/Total: {}/{} {:?}",newgroup,the_name,the_list,added,res_arr.len(),&res_arr);
 			if ok { 200 } else { 206 }
 		}
 		else
 		{
-			if new_group
+			if newgroup
 			{
 				println!("\n- A new group is empty after attempting to add multiple items\n  Name: {}",the_name);
 			};
@@ -439,8 +441,8 @@ async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Da
 	json_res(status_code,
 		match status_code
 		{
-			200=>json!({"status":status_code}),
-			206=>json!({"status":status_code,"details":res_arr}),
+			200=>json!({"status":status_code,"newgroup":newgroup}),
+			206=>json!({"status":status_code,"newgroup":newgroup,"details":res_arr}),
 			_=>json!({"status":status_code,"msg":msg})
 		}
 	)
@@ -515,6 +517,11 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 		else
 		{
 			let item=the_group.kick(the_index);
+			if the_group.is_empty()
+			{
+				storage.quecol.remove(the_name.clone()).unwrap();
+				println!("\n- Deleted empty group\n  Name: {}",&the_name);
+			};
 			if item.len()==0
 			{
 				msg=RQUE_ERROR_ITEM_NOT_FOUND;status_code=404;
@@ -538,20 +545,22 @@ async fn delete_range(from_path: web::Path<(String,usize,usize)>,app_data: web::
 	{
 		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_ZERO_GROUPS }));
 	};
-
 	let (the_name,index,qtty)=from_path.into_inner();
 	if !storage.quecol.contains_key(&the_name)
 	{
 		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_GROUP_NOT_FOUND }));
 	};
-
 	let the_group=storage.quecol.get_mut(&the_name).unwrap();
 	if the_group.is_empty()
 	{
 		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_GROUP_EMPTY }));
 	};
-
 	let the_slice:Vec<Vec<String>>=the_group.get_range(index,qtty,true);
+	if the_group.is_empty()
+	{
+		storage.quecol.remove(the_name.clone()).unwrap();
+		println!("\n- Deleted empty group\n  Name: {}",&the_name);
+	};
 	if the_slice.len()==0
 	{
 		json_res(400,json!({ "status":400,"msg":RQUE_ERROR_SLICE }))
