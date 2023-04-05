@@ -93,7 +93,7 @@ async def rque_del_range(group_name,index,qtty,rque_home=_rque_default_addr,rque
 
 class rque_Client:
 
-	def __init__(self,own_session=True,addr=_rque_default_addr,port=_rque_default_port,skey=skey):
+	def __init__(self,own_session=True,addr=_rque_default_addr,port=_rque_default_port,skey=None):
 		self.addr=addr
 		self.port=port
 		self.skey=skey
