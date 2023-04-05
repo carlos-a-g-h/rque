@@ -270,7 +270,8 @@ fn json_res(sc: u16,payload: serde_json::Value) -> HttpResponse
 #[get("/")]
 async fn get_status(req: HttpRequest) -> HttpResponse
 {
-	if is_auth(&req) { json_res(200, json!({}) ) } else { json_res(401, json!({}) ) }
+	let sc:u16={ if is_auth(&req) { 200 } else { 401 } };
+	json_res(sc, json!({ "status":sc }) )
 }
 
 #[get("/help")]
@@ -708,6 +709,14 @@ async fn main() -> std::io::Result<()>
 			println!("  {}",msg);from_env
 		}
 	};
+
+	println!("\n- {}",
+		match env::var("RQUE_SECRETKEY") 
+		{
+			Ok(_)=>"Secret key env var detected!",
+			Err(_)=>"WARNING: There is no secret key",
+		}
+	);
 
 	let pdata=web::Data::new(TheAppState{
 		holder: Mutex::new( Storage{ quecol: HashMap::new() } )
