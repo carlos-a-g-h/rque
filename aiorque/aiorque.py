@@ -93,9 +93,10 @@ async def rque_del_range(group_name,index,qtty,rque_home=_rque_default_addr,rque
 
 class rque_Client:
 
-	def __init__(self,own_session=True,addr=_rque_default_addr,port=_rque_default_port):
+	def __init__(self,own_session=True,addr=_rque_default_addr,port=_rque_default_port,skey=skey):
 		self.addr=addr
 		self.port=port
+		self.skey=skey
 
 		if not own_session:
 			self.session=None
@@ -106,6 +107,8 @@ class rque_Client:
 				"Content-Type":"application/json",
 				"Accept":"application/json",
 			})
+			if self.skey:
+				self.session.headers.update({"Authorization":"Bearer "+self.skey})
 
 			if "Host" in self.session.headers:
 				self.session.headers.pop("Host")
@@ -138,7 +141,7 @@ class rque_Client:
 		else:
 			s=session
 
-		res=await rque_api(session=s,api_path=f"/sel/{gname}/{index}",rque_home=self.addr,rque_port=self.port)
+		res=await rque_api(session=s,api_path=f"/sel/{gname}/{index}",rque_home=self.addr,rque_port=self.port,skey=self.skey)
 		return res
 
 	async def get_group(self,gname):
@@ -147,7 +150,7 @@ class rque_Client:
 		else:
 			s=session
 
-		res=await rque_api(session=s,api_path=f"/sel/{gname}",rque_home=self.addr,rque_port=self.port)
+		res=await rque_api(session=s,api_path=f"/sel/{gname}",rque_home=self.addr,rque_port=self.port,skey=self.skey)
 		return res
 
 	async def get_range(self,gname,index,qtty,session=None):
@@ -156,7 +159,7 @@ class rque_Client:
 		else:
 			s=session
 
-		res=await rque_api(session=s,api_path=f"/sel/{gname}/{index}/{qtty}",rque_home=self.addr,rque_port=self.port)
+		res=await rque_api(session=s,api_path=f"/sel/{gname}/{index}/{qtty}",rque_home=self.addr,rque_port=self.port,skey=self.skey)
 		return res
 
 	async def add_sin(self,gname,item,session=None):
@@ -165,7 +168,7 @@ class rque_Client:
 		else:
 			s=session
 
-		res=await rque_api(session=s,the_method="POST",the_json={"name":gname,"item":item},api_path="/add/sin",rque_home=self.addr,rque_port=self.port)
+		res=await rque_api(session=s,the_method="POST",the_json={"name":gname,"item":item},api_path="/add/sin",rque_home=self.addr,rque_port=self.port,skey=self.skey)
 		return res
 
 	async def add_mul(self,gname,item_list,session=None):
@@ -174,7 +177,7 @@ class rque_Client:
 		else:
 			s=session
 
-		res=await rque_api(session=s,the_method="POST",the_json={"name":gname,"list":item_list},api_path="/add/mul",rque_home=self.addr,rque_port=self.port)
+		res=await rque_api(session=s,the_method="POST",the_json={"name":gname,"list":item_list},api_path="/add/mul",rque_home=self.addr,rque_port=self.port,skey=self.skey)
 		return res
 
 	async def del_item(self,gname,index,session=None):
@@ -183,7 +186,7 @@ class rque_Client:
 		else:
 			s=session
 
-		res=await rque_api(session=s,the_method="DELETE",api_path=f"/sel/{gname}/{index}",rque_home=self.addr,rque_port=self.port)
+		res=await rque_api(session=s,the_method="DELETE",api_path=f"/sel/{gname}/{index}",rque_home=self.addr,rque_port=self.port,skey=self.skey)
 		return res
 
 	async def del_range(self,gname,index,qtty,session=None):
@@ -192,5 +195,5 @@ class rque_Client:
 		else:
 			s=session
 
-		res=await rque_api(session=s,the_method="DELETE",api_path=f"/sel/{gname}/{index}/{qtty}",rque_home=self.addr,rque_port=self.port)
+		res=await rque_api(session=s,the_method="DELETE",api_path=f"/sel/{gname}/{index}/{qtty}",rque_home=self.addr,rque_port=self.port,skey=self.skey)
 		return res
