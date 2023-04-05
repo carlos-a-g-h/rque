@@ -585,7 +585,7 @@ async fn delete_range(from_path: web::Path<(String,usize,usize)>,app_data: web::
 
 fn parse_port(raw_arg: String) -> (u16,bool)
 {
-	match port_raw.parse::<u16>()
+	match raw_arg.parse::<u16>()
 	{
 		Ok(num) => (num,true),
 		Err(_) => (RQUE_DEFAULT_PORT,false),
@@ -598,19 +598,19 @@ async fn main() -> std::io::Result<()>
 	println!("\n[ rQUE ]\n\n{}",RQUE_INFO);
 
 	let cfg_port:u16={
-		println!("\n- From config: Obtaining the port")
-		let mut args: Vec<String> = env::args().collect();
+		println!("\n- From config: Obtaining the port");
+		let mut args: Vec<String>=env::args().collect();
 		let port_raw:String=args.remove(1);
 
-		let (port,tryenv):(u16,bool)=parse_port(port_raw)
+		let (port,tryenv):(u16,bool)=parse_port(port_raw);
 		if tryenv
 		{
-			match std::env("RQUE_PORT")
+			match env::var("RQUE_PORT")
 			{
 				Err(_)=>port,
 				Ok(raw_value)=>{
-					let (port_ok,ok):(u16,bool)=parse_port(port_raw);
-					println!("  {}", if { RQUE_MSG_CUS_PORT } else { RQUE_MSG_DEF_PORT } );
+					let (port_ok,ok):(u16,bool)=parse_port(raw_value);
+					println!("  {}", if ok { RQUE_MSG_CUS_PORT } else { RQUE_MSG_DEF_PORT } );
 					port_ok
 				}
 			}
