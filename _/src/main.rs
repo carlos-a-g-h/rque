@@ -599,34 +599,37 @@ async fn main() -> std::io::Result<()>
 
 	let cfg_port:u16={
 		println!("\n- From config: Obtaining the port");
-		let mut args: Vec<String>=env::args().collect();
-		let port_raw:String=args.remove(1);
-
-		let (port,tryenv):(u16,bool)=parse_port(port_raw);
-		if tryenv
+		let from_arg_raw:String={ let mut args: Vec<String>=env::args().collect();let sel:String=args.remove(1);sel };
+		let (from_arg,arg_ok):(u16,bool)=parse_port(from_arg_raw);
+		if arg_ok
 		{
-			match env::var("RQUE_PORT")
-			{
-				Err(_)=>port,
-				Ok(raw_value)=>{
-					let (port_ok,ok):(u16,bool)=parse_port(raw_value);
-					println!("  {}", if ok { RQUE_MSG_CUS_PORT } else { RQUE_MSG_DEF_PORT } );
-					port_ok
-				}
-			}
+			println!("  {}",RQUE_MSG_CUS_PORT,from_arg);from_arg
 		}
-		else { println!("  {}",RQUE_MSG_CUS_PORT);port }
+		else
+		{
+			let (msg,from_env):(String,u16)=match env::var("RQUE_CUSTOMPORT")
+			{
+				Err(_)=>( String::from(RQUE_MSG_DEF_PORT),from_arg ),
+				Ok(from_env_raw)=>{
+					let (the_port,env_ok):(u16,bool)=parse_port(from_env_raw);
+					if env_ok
+					{ ( format!("{}: {}",RQUE_MSG_CUS_PORT,the_port) , the_port ) }
+					else
+					{ ( String::from(RQUE_MSG_DEF_PORT) , the_port ) }
+				}
+			};
+			println!("  {}",msg);from_env
+		}
 	};
 
 	let cfg_skey:String={
 		println!("\n- From config: Obtaining token");
-		let (msg,from_env):(&str,String)=match env::var("RQUE_SKEY")
+		let (msg,from_env):(&str,String)=match env::var("RQUE_SECRETKEY")
 		{
 			Err(_)=>("RQUE_SKEY env var not found or not valid: no authorization will be needed",String::new()),
-			Ok(value)=>("Found secret key env var",from_env),
+			Ok(value)=>("Found the secret key among the env vars",from_env),
 		};
-		println!("  {}",msg);
-		from_env
+		println!("  {}",msg);from_env
 	};
 
 	let pdata=web::Data::new(TheAppState{
