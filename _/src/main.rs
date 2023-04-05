@@ -684,9 +684,9 @@ async fn main() -> std::io::Result<()>
 			let mut args: Vec<String>=env::args().collect();
 			if args.len()>1
 			{
-				from_arg_raw=args.remove(1);parse_port(from_arg_raw)
+				let from_arg_raw=args.remove(1);parse_port(from_arg_raw)
 			}
-			else { (RQUE_MSG_DEF_PORT,false) }
+			else { (RQUE_DEFAULT_PORT,false) }
 		};
 		if arg_ok
 		{
