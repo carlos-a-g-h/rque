@@ -19,7 +19,7 @@ static RQUE_ERROR_ITEM_NOT_FOUND:&str="The item that correspond the specified in
 static RQUE_ERROR_ITEM_NOT_VALID:&str="The provided item is not valid";
 static RQUE_ERROR_SLICE:&str="Try lowering the starting index";
 
-static RQUE_INFO:&str="Written by Carlos Alberto González Hernández - 2023-04-02";
+static RQUE_INFO:&str="Written by Carlos Alberto González Hernández - 2023-04-05";
 static RQUE_HELP:&str="
 <!DOCTYPE html>
 <html lang=\"en\">
