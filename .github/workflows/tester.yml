@@ -1,6 +1,7 @@
 name: Tester
 
-on:
+on:[workflow_dispatch]
+
   push:
     paths-ignore:
       - '.github/**'
