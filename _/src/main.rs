@@ -220,7 +220,7 @@ fn is_auth(req: &HttpRequest) -> bool
 	let key:&str={
 		match env::var("RQUE_SECRETKEY")
 		{
-			Ok(env_var)=>env_var.as_str(),
+			Ok(env_var)=>&env_var,
 			Err(_)=>"",
 		}
 	};
