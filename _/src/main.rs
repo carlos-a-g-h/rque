@@ -598,7 +598,7 @@ async fn main() -> std::io::Result<()>
 	println!("\n[ rQUE ]\n\n{}",RQUE_INFO);
 
 	let cfg_port:u16={
-
+		println!("\n- From config: Obtaining the port")
 		let mut args: Vec<String> = env::args().collect();
 		let port_raw:String=args.remove(1);
 
@@ -623,6 +623,7 @@ async fn main() -> std::io::Result<()>
 	};
 
 	let cfg_password:String={
+		println!("\n- From config: Obtaining token")
 		String::new()
 	};
 
