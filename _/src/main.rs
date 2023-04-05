@@ -217,16 +217,14 @@ struct Configuration
 
 fn is_auth(req: &HttpRequest) -> bool
 {
-	let key:&str={
-		let key_str:String=match env::var("RQUE_SECRETKEY") 
-		{
-			Ok(env_var)=>env_var,
-			Err(_)=>String::new()
-		};
-		key_str.as_str()
+	let key:String=match env::var("RQUE_SECRETKEY") 
+	{
+		Ok(env_var)=>env_var,
+		Err(_)=>String::new()
 	};
 	let result:bool={
-		if key==""
+		let key_str=key.as_str();
+		if key.as_str()==""
 		{
 			return true;
 		};
