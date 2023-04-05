@@ -1,5 +1,11 @@
 # Changelog
 
+## 2023-04-05
+
+- Added basic authentication using {'Authentication':'Bearer ...'} header
+
+- Added environment variables support
+
 ## 2023-04-02
 
 - When successfully adding items, the response will now let you know wether a group was created in order to add the items
