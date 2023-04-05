@@ -271,7 +271,7 @@ fn json_res(sc: u16,payload: serde_json::Value) -> HttpResponse
 #[get("/")]
 async fn get_status(req: HttpRequest) -> HttpResponse
 {
-	if is_auth(&req) { json_res(200, json!({}) } else { json_res(401, json!({}) }
+	if is_auth(&req) { json_res(200, json!({}) ) } else { json_res(401, json!({}) ) }
 }
 
 #[get("/help")]
