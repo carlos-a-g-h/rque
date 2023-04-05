@@ -223,7 +223,7 @@ fn is_auth(req: &HttpRequest) -> bool
 			Ok(env_var)=>env_var,
 			Err(_)=>String::new()
 		};
-		key_str.as_string()
+		key_str.as_str()
 	};
 	let result:bool={
 		if key==""
