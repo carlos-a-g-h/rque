@@ -287,6 +287,10 @@ async fn show_help(req: HttpRequest) -> HttpResponse
 #[get("/all")]
 async fn get_names(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 });
+	};
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -302,8 +306,12 @@ async fn get_names(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpRes
 }
 
 #[get("/sel/{name}")]
-async fn get_group(from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 });
+	};
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -338,8 +346,12 @@ async fn get_group(from_path: web::Path<String>,app_data: web::Data<TheAppState>
 }
 
 #[get("/sel/{name}/{index}")]
-async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 });
+	};
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -370,8 +382,12 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 }
 
 #[get("/sel/{name}/{index}/{qtty}")]
-async fn get_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn get_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 });
+	};
 	let mut storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -402,8 +418,12 @@ async fn get_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Dat
 }
 
 #[post("/add/sin")]
-async fn post_group_addsin(from_post: web::Json<POST_BringOne>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn post_group_addsin(req: HttpRequest,from_post: web::Json<POST_BringOne>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 });
+	};
 	if from_post.item.len()==0
 	{
 		return json_res(403, json!({"msg":RQUE_ERROR_ITEM_NOT_VALID}));
@@ -441,8 +461,12 @@ async fn post_group_addsin(from_post: web::Json<POST_BringOne>,app_data: web::Da
 }
 
 #[post("/add/mul")]
-async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn post_group_addmul(req: HttpRequest,from_post: web::Json<POST_BringMul>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 });
+	};
 	if from_post.list.len()==0
 	{
 		return json_res(403,json!({"msg":"The provided list of items is empty"}));
@@ -500,8 +524,12 @@ async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Da
 }
 
 #[delete("/all")]
-async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_all(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 });
+	};
 	let mut storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -516,8 +544,12 @@ async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
 }
 
 #[delete("/sel/{name}")]
-async fn delete_group(from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 });
+	};
 	let mut storage=app_data.holder.lock().unwrap();
 
 	let mut msg:&str="";
@@ -542,8 +574,12 @@ async fn delete_group(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 }
 
 #[delete("/sel/{name}/{index}")]
-async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 });
+	};
 	let mut storage=app_data.holder.lock().unwrap();
 
 	let mut msg:&str="";
@@ -589,8 +625,12 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 }
 
 #[delete("/sel/{name}/{index}/{qtty}")]
-async fn delete_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 });
+	};
 	let mut storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
