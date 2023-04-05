@@ -2,7 +2,7 @@
 
 ## 2023-04-05
 
-- Added basic authentication using {'Authentication':'Bearer ...'} header
+- Added basic authentication using { 'Authentication' : 'Bearer ...' } header
 
 - Added environment variables support
 
