@@ -615,20 +615,22 @@ async fn main() -> std::io::Result<()>
 				}
 			}
 		}
-		else
-		{
-			println!("  {}",RQUE_MSG_CUS_PORT);
-			port
-		}
+		else { println!("  {}",RQUE_MSG_CUS_PORT);port }
 	};
 
-	let cfg_password:String={
+	let cfg_skey:String={
 		println!("\n- From config: Obtaining token");
-		String::new()
+		let (msg,from_env):(&str,String)=match env::var("RQUE_SKEY")
+		{
+			Err(_)=>("RQUE_SKEY env var not found or not valid: no authorization will be needed",String::new()),
+			Ok(value)=>("Found secret key env var",from_env),
+		};
+		println!("  {}",msg);
+		from_env
 	};
 
 	let pdata=web::Data::new(TheAppState{
-		holder: Mutex::new( Storage{ quecol: HashMap::new() , password: cfg_password } )
+		holder: Mutex::new( Storage{ quecol: HashMap::new() , skey: cfg_skey } )
 	});
 
 	HttpServer::new(move ||
