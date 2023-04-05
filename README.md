@@ -43,6 +43,6 @@ You can read the changelog [here](CHANGELOG.md)
 
 - ~~Adding/Removing multiple items~~
 
-- Basic authentication
+- ~~Basic authentication~~~
 
-- Split into separate modules
+- Split into separate modules and organize the code
