@@ -2,6 +2,8 @@
 
 ## How to run
 
+### Commandline
+
 The only (optional) argument is the port number:
 ```
 ./rque {PORT}
@@ -14,6 +16,19 @@ Example: Run in a custom port
 ```
 ./rque 23456
 ```
+### Environment variables
+
+- RQUE_CUSTOMPORT
+  -  Type: Number
+  -  Descr.: Custom port. The server will first look into the port argument before this environment variable
+
+- RQUE_SECRETKEY
+  - Type: String; Descr.: Secret key that acts as a token for authorising all requests
+  - All request must include an 'Authorization' header of type 'Bearer' like this one: { 'Authorization' : 'Bearer TheSecretKey' }
+  - The only exception of this is the GET request to the '/help' route if the client is '127.0.0.1'
+
+
+
 If the given argument for the port is NaN, the program will just use the default port
 
 ## What kind of data is stored and how it stores it
