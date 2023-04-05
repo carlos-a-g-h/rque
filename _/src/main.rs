@@ -623,7 +623,7 @@ async fn main() -> std::io::Result<()>
 	};
 
 	let cfg_password:String={
-		println!("\n- From config: Obtaining token")
+		println!("\n- From config: Obtaining token");
 		String::new()
 	};
 
