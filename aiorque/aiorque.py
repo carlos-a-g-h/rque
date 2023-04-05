@@ -20,7 +20,7 @@ def url_build(api_path,rque_home,rque_port):
 
 	return u+api_path
 
-async def rque_api(the_method="GET",api_path="/all",the_json=None,session=None,rque_home=_rque_default_addr,rque_port=_rque_default_port):
+async def rque_api(the_method="GET",api_path="/all",the_json=None,session=None,skey=None,rque_home=_rque_default_addr,rque_port=_rque_default_port):
 
 	local=False
 	if not session:
@@ -28,6 +28,9 @@ async def rque_api(the_method="GET",api_path="/all",the_json=None,session=None,r
 		session=aiohttp.ClientSession()
 		session.headers.update({"Content-Type":"application/json","Accept":"application/json",
 		})
+
+	if skey:
+		session.headers.update({"Authorization":"Bearer "+skey})
 
 	the_url=url_build(api_path,rque_home,rque_port)
 	print(f"\n- rQUE call: {the_method} {the_url}\n  Data: {the_json}")
@@ -48,44 +51,44 @@ async def rque_api(the_method="GET",api_path="/all",the_json=None,session=None,r
 	print("  result:",result)
 	return result
 
-async def rque_get_all(rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None):
-	res=await rque_api(session=session,rque_home=rque_home,rque_port=rque_port)
+async def rque_get_all(rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None,skey=None):
+	res=await rque_api(session=session,rque_home=rque_home,rque_port=rque_port,skey=skey)
 	return res
 
-async def rque_get_group(group_name,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None):
-	res=await rque_api(session=session,api_path=f"/sel/{group_name}",rque_home=rque_home,rque_port=rque_port)
+async def rque_get_group(group_name,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None,skey=None):
+	res=await rque_api(session=session,api_path=f"/sel/{group_name}",rque_home=rque_home,rque_port=rque_port,skey=skey)
 	return res
 
-async def rque_get_item(group_name,index,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None):
-	res=await rque_api(session=session,api_path=f"/sel/{group_name}/{index}",rque_home=rque_home,rque_port=rque_port)
+async def rque_get_item(group_name,index,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None,skey=None):
+	res=await rque_api(session=session,api_path=f"/sel/{group_name}/{index}",rque_home=rque_home,rque_port=rque_port,skey=skey)
 	return res
 
-async def rque_get_range(group_name,index,qtty,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None):
-	res=await rque_api(session=session,api_path=f"/sel/{group_name}/{index}/{qtty}",rque_home=rque_home,rque_port=rque_port)
+async def rque_get_range(group_name,index,qtty,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None,skey=None):
+	res=await rque_api(session=session,api_path=f"/sel/{group_name}/{index}/{qtty}",rque_home=rque_home,rque_port=rque_port,skey=skey)
 	return res
 
-async def rque_addsin(group_name,item,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None):
-	res=await rque_api(session=session,the_method="POST",the_json={"name":group_name,"item":item},api_path="/add/sin",rque_home=rque_home,rque_port=rque_port)
+async def rque_addsin(group_name,item,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None,skey=None):
+	res=await rque_api(session=session,the_method="POST",the_json={"name":group_name,"item":item},api_path="/add/sin",rque_home=rque_home,rque_port=rque_port,skey=skey)
 	return res
 
-async def rque_addmul(group_name,item_list,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None):
-	res=await rque_api(session=session,the_method="POST",the_json={"name":group_name,"list":item_list},api_path="/add/mul",rque_home=rque_home,rque_port=rque_port)
+async def rque_addmul(group_name,item_list,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None,skey=None):
+	res=await rque_api(session=session,the_method="POST",the_json={"name":group_name,"list":item_list},api_path="/add/mul",rque_home=rque_home,rque_port=rque_port,skey=skey)
 	return res
 
-async def rque_del_all(rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None):
-	res=await rque_api(session=session,the_method="DELETE",rque_port=rque_port)
+async def rque_del_all(rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None,skey=None):
+	res=await rque_api(session=session,the_method="DELETE",rque_port=rque_port,skey=skey)
 	return res
 
-async def rque_del_group(group_name,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None):
-	res=await rque_api(session=session,the_method="DELETE",api_path=f"/sel/{group_name}",rque_home=rque_home,rque_port=rque_port)
+async def rque_del_group(group_name,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None,skey=None):
+	res=await rque_api(session=session,the_method="DELETE",api_path=f"/sel/{group_name}",rque_home=rque_home,rque_port=rque_port,skey=skey)
 	return res
 
-async def rque_del_item(group_name,index,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None):
-	res=await rque_api(session=session,the_method="DELETE",api_path=f"/sel/{group_name}/{index}",rque_home=rque_home,rque_port=rque_port)
+async def rque_del_item(group_name,index,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None,skey=None):
+	res=await rque_api(session=session,the_method="DELETE",api_path=f"/sel/{group_name}/{index}",rque_home=rque_home,rque_port=rque_port,skey=skey)
 	return res
 
-async def rque_del_range(group_name,index,qtty,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None):
-	res=await rque_api(session=session,the_method="DELETE",api_path=f"/sel/{group_name}/{index}/{qtty}",rque_home=rque_home,rque_port=rque_port)
+async def rque_del_range(group_name,index,qtty,rque_home=_rque_default_addr,rque_port=_rque_default_port,session=None,skey=None):
+	res=await rque_api(session=session,the_method="DELETE",api_path=f"/sel/{group_name}/{index}/{qtty}",rque_home=rque_home,rque_port=rque_port,skey=skey)
 	return res
 
 class rque_Client:
