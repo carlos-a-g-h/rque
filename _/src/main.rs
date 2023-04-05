@@ -30,6 +30,22 @@ static RQUE_HELP:&str="
 	</head>
 	<body>
 		<h1>rQUE</h1>
+		<h2>Running the server</h2>
+		<h3>Usage and examples</h3>
+
+		<p>The only (optional) argument is the port<br>
+		<strong><code>$ rque {PORT}</code></strong></p>
+
+		<p>Example1: Runs the server normally at the default port (8080) or at a custom port specified by an environment variable<br>
+		<strong><code>$ rque</strong></code></p>
+
+		<p>Example2: Runs the server at port 23456<br>
+		<strong><code>$ rque 23456</strong></code></p>
+
+		<h3>Environment variables</h3>
+		<p><strong>RQUE_CUSTOMPORT</strong><br>Type: Number<br>Descr.: Custom port. The server will first look into the port argument before this environment variable</p>
+		<p><strong>RQUE_SECRETKEY</strong><br>Type: String<br>Descr.: Secret key that acts as a token for authorising all requests. All request must include an 'Authorization' header of type 'Bearer' like this one: <code>{ 'Authorization' : 'Bearer TheSecretKey' }</code></p>
+
 		<h2>How data is stored</h2>
 		<h3>Schema</h3>
 		<p>The data is stored in a large hashmap, where each key is the name of a group and each value is the content of the group</p>
