@@ -271,7 +271,7 @@ fn json_res(sc: u16,payload: serde_json::Value) -> HttpResponse
 #[get("/")]
 async fn get_status(req: HttpRequest) -> HttpResponse
 {
-	if is_auth(&req) { json_res(200, json!({}) } else { json_res(401, json!({}) ) }
+	if is_auth(&req) { json_res(200, json!({}) } else { json_res(401, json!({}) }
 }
 
 #[get("/help")]
@@ -289,7 +289,7 @@ async fn get_names(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpRes
 {
 	if !is_auth(&req)
 	{
-		return json_res(401, json!({ "status":401 });
+		return json_res(401, json!({ "status":401 }));
 	};
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
@@ -310,7 +310,7 @@ async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::
 {
 	if !is_auth(&req)
 	{
-		return json_res(401, json!({ "status":401 });
+		return json_res(401, json!({ "status":401 }));
 	};
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
@@ -350,7 +350,7 @@ async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_dat
 {
 	if !is_auth(&req)
 	{
-		return json_res(401, json!({ "status":401 });
+		return json_res(401, json!({ "status":401 }));
 	};
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
@@ -386,7 +386,7 @@ async fn get_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,a
 {
 	if !is_auth(&req)
 	{
-		return json_res(401, json!({ "status":401 });
+		return json_res(401, json!({ "status":401 }));
 	};
 	let mut storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
@@ -422,7 +422,7 @@ async fn post_group_addsin(req: HttpRequest,from_post: web::Json<POST_BringOne>,
 {
 	if !is_auth(&req)
 	{
-		return json_res(401, json!({ "status":401 });
+		return json_res(401, json!({ "status":401 }));
 	};
 	if from_post.item.len()==0
 	{
@@ -465,7 +465,7 @@ async fn post_group_addmul(req: HttpRequest,from_post: web::Json<POST_BringMul>,
 {
 	if !is_auth(&req)
 	{
-		return json_res(401, json!({ "status":401 });
+		return json_res(401, json!({ "status":401 }));
 	};
 	if from_post.list.len()==0
 	{
@@ -528,7 +528,7 @@ async fn delete_all(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpRe
 {
 	if !is_auth(&req)
 	{
-		return json_res(401, json!({ "status":401 });
+		return json_res(401, json!({ "status":401 }));
 	};
 	let mut storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
@@ -548,7 +548,7 @@ async fn delete_group(req: HttpRequest,from_path: web::Path<String>,app_data: we
 {
 	if !is_auth(&req)
 	{
-		return json_res(401, json!({ "status":401 });
+		return json_res(401, json!({ "status":401 }));
 	};
 	let mut storage=app_data.holder.lock().unwrap();
 
@@ -578,7 +578,7 @@ async fn delete_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_
 {
 	if !is_auth(&req)
 	{
-		return json_res(401, json!({ "status":401 });
+		return json_res(401, json!({ "status":401 }));
 	};
 	let mut storage=app_data.holder.lock().unwrap();
 
@@ -629,7 +629,7 @@ async fn delete_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)
 {
 	if !is_auth(&req)
 	{
-		return json_res(401, json!({ "status":401 });
+		return json_res(401, json!({ "status":401 }));
 	};
 	let mut storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
