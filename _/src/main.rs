@@ -680,8 +680,24 @@ async fn main() -> std::io::Result<()>
 
 	let port:u16={
 		println!("\n- From config: Obtaining the port");
-		let from_arg_raw:String={ let mut args: Vec<String>=env::args().collect();let sel:String=args.remove(1);sel };
+		/*
+		let from_arg_raw:String={
+			let mut args: Vec<String>=env::args().collect();
+			if args.len()>1
+			{
+				args.remove(1)
+			}
+		};
 		let (from_arg,arg_ok):(u16,bool)=parse_port(from_arg_raw);
+		*/
+		let (from_arg,arg_ok):(u16,bool)={
+			let mut args: Vec<String>=env::args().collect();
+			if args.len()>1
+			{
+				from_arg_raw=args.remove(1);parse_port(from_arg_raw)
+			}
+			else { (RQUE_MSG_DEF_PORT,false) }
+		};
 		if arg_ok
 		{
 			println!("  {}: {}",RQUE_MSG_CUS_PORT,from_arg);from_arg
