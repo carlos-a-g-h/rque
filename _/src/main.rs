@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::env;
 use std::sync::Mutex;
-use actix_web::{get, post, delete, web, App, HttpServer, HttpResponse};
+use actix_web::{get, post, delete, web, App, HttpServer, HttpResponse, HttpRequest};
 use actix_web::http::{header, StatusCode};
 use serde::Deserialize;
 use serde_json::json;
@@ -177,7 +177,7 @@ impl Group
 
 // Main Data struct
 
-struct Storage { quecol: HashMap<String,Group> , skey: String }
+struct Storage { quecol: HashMap<String,Group> }
 
 impl Storage
 {
@@ -215,10 +215,16 @@ struct Configuration
 
 // Utilities
 
-fn chk_auth(key: &String, req: &HttpRequest) -> bool
+fn is_auth(req: &HttpRequest) -> bool
 {
+	let key:String=match env::var("RQUE_SECRETKEY") 
+	{
+		Ok(env_var)=>env_var,
+		Err(_)=>String::new()
+	};
 	let result:bool={
-		if key==""
+		let key_str=key.as_str();
+		if key.as_str()==""
 		{
 			return true;
 		};
@@ -262,23 +268,28 @@ fn json_res(sc: u16,payload: serde_json::Value) -> HttpResponse
 // HTTP Handlers
 
 #[get("/")]
-async fn get_status() -> HttpResponse
+async fn get_status(req: HttpRequest) -> HttpResponse
 {
-	json_res(200, json!({}) )
+	if is_auth(&req) { json_res(200, json!({}) ) } else { json_res(401, json!({}) ) }
 }
 
 #[get("/help")]
-async fn show_help() -> HttpResponse
+async fn show_help(req: HttpRequest) -> HttpResponse
 {
+	let valid=is_auth(&req);
 	HttpResponse::Ok()
-	.status(StatusCode::from_u16(200).unwrap())
-	.insert_header(("Content-Type","text/html"))
-	.body( RQUE_HELP.to_string() )
+	.status(StatusCode::from_u16( if valid { 200 } else { 401 } ).unwrap())
+	.insert_header(("Content-Type", if valid { "text/html"} else { "text/plain" } ))
+	.body( if valid { RQUE_HELP.to_string() } else { String::from("UNAUTHORIZED") } )
 }
 
 #[get("/all")]
-async fn get_names(app_data: web::Data<TheAppState>) -> HttpResponse
+async fn get_names(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -294,8 +305,12 @@ async fn get_names(app_data: web::Data<TheAppState>) -> HttpResponse
 }
 
 #[get("/sel/{name}")]
-async fn get_group(from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -330,8 +345,12 @@ async fn get_group(from_path: web::Path<String>,app_data: web::Data<TheAppState>
 }
 
 #[get("/sel/{name}/{index}")]
-async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -362,8 +381,12 @@ async fn get_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheA
 }
 
 #[get("/sel/{name}/{index}/{qtty}")]
-async fn get_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn get_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
 	let mut storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -394,8 +417,12 @@ async fn get_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Dat
 }
 
 #[post("/add/sin")]
-async fn post_group_addsin(from_post: web::Json<POST_BringOne>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn post_group_addsin(req: HttpRequest,from_post: web::Json<POST_BringOne>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
 	if from_post.item.len()==0
 	{
 		return json_res(403, json!({"msg":RQUE_ERROR_ITEM_NOT_VALID}));
@@ -433,8 +460,12 @@ async fn post_group_addsin(from_post: web::Json<POST_BringOne>,app_data: web::Da
 }
 
 #[post("/add/mul")]
-async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn post_group_addmul(req: HttpRequest,from_post: web::Json<POST_BringMul>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
 	if from_post.list.len()==0
 	{
 		return json_res(403,json!({"msg":"The provided list of items is empty"}));
@@ -492,8 +523,12 @@ async fn post_group_addmul(from_post: web::Json<POST_BringMul>,app_data: web::Da
 }
 
 #[delete("/all")]
-async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_all(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
 	let mut storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -508,8 +543,12 @@ async fn delete_all(app_data: web::Data<TheAppState>) -> HttpResponse
 }
 
 #[delete("/sel/{name}")]
-async fn delete_group(from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
 	let mut storage=app_data.holder.lock().unwrap();
 
 	let mut msg:&str="";
@@ -534,8 +573,12 @@ async fn delete_group(from_path: web::Path<String>,app_data: web::Data<TheAppSta
 }
 
 #[delete("/sel/{name}/{index}")]
-async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
 	let mut storage=app_data.holder.lock().unwrap();
 
 	let mut msg:&str="";
@@ -581,8 +624,12 @@ async fn delete_index(from_path: web::Path<(String,usize)>,app_data: web::Data<T
 }
 
 #[delete("/sel/{name}/{index}/{qtty}")]
-async fn delete_range(from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+async fn delete_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
 	let mut storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
 	{
@@ -631,7 +678,7 @@ async fn main() -> std::io::Result<()>
 {
 	println!("\n[ rQUE ]\n\n{}",RQUE_INFO);
 
-	let cfg_port:u16={
+	let port:u16={
 		println!("\n- From config: Obtaining the port");
 		let from_arg_raw:String={ let mut args: Vec<String>=env::args().collect();let sel:String=args.remove(1);sel };
 		let (from_arg,arg_ok):(u16,bool)=parse_port(from_arg_raw);
@@ -656,18 +703,8 @@ async fn main() -> std::io::Result<()>
 		}
 	};
 
-	let cfg_skey:String={
-		println!("\n- From config: Obtaining token");
-		let (msg,from_env):(&str,String)=match env::var("RQUE_SECRETKEY")
-		{
-			Err(_)=>("RQUE_SKEY env var not found or not valid: no authorization will be needed",String::new()),
-			Ok(valid)=>("Found the secret key among the env vars",valid),
-		};
-		println!("  {}",msg);from_env
-	};
-
 	let pdata=web::Data::new(TheAppState{
-		holder: Mutex::new( Storage{ quecol: HashMap::new() , skey: cfg_skey } )
+		holder: Mutex::new( Storage{ quecol: HashMap::new() } )
 	});
 
 	HttpServer::new(move ||
@@ -686,7 +723,7 @@ async fn main() -> std::io::Result<()>
 			.service(delete_index)
 			.service(delete_range)
 		)
-		.bind(("127.0.0.1",cfg_port))?
+		.bind(("127.0.0.1",port))?
 		.run()
 		.await
 }
