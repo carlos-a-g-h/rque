@@ -178,7 +178,7 @@ impl Group
 
 // Main Data struct
 
-struct Storage { quecol: HashMap<String,Group> , password: String }
+struct Storage { quecol: HashMap<String,Group> , skey: String }
 
 impl Storage
 {
@@ -603,7 +603,7 @@ async fn main() -> std::io::Result<()>
 		let (from_arg,arg_ok):(u16,bool)=parse_port(from_arg_raw);
 		if arg_ok
 		{
-			println!("  {}",RQUE_MSG_CUS_PORT,from_arg);from_arg
+			println!("  {}: {}",RQUE_MSG_CUS_PORT,from_arg);from_arg
 		}
 		else
 		{
@@ -627,7 +627,7 @@ async fn main() -> std::io::Result<()>
 		let (msg,from_env):(&str,String)=match env::var("RQUE_SECRETKEY")
 		{
 			Err(_)=>("RQUE_SKEY env var not found or not valid: no authorization will be needed",String::new()),
-			Ok(value)=>("Found the secret key among the env vars",from_env),
+			Ok(valid)=>("Found the secret key among the env vars",valid),
 		};
 		println!("  {}",msg);from_env
 	};
