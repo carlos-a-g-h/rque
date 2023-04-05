@@ -177,7 +177,7 @@ impl Group
 
 // Main Data struct
 
-struct Storage { quecol: HashMap<String,Group> , skey: String }
+struct Storage { quecol: HashMap<String,Group> }
 
 impl Storage
 {
