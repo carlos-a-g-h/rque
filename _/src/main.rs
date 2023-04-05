@@ -9,6 +9,9 @@ use serde_json::json;
 
 static RQUE_DEFAULT_PORT:u16=8080;
 
+static RQUE_MSG_DEF_PORT:&str="Using the default port";
+static RQUE_MSG_CUS_PORT:&str="Using a custom port";
+
 static RQUE_ERROR_ZERO_GROUPS:&str="There are no groups yet";
 static RQUE_ERROR_GROUP_NOT_FOUND:&str="The specified group does not exist";
 static RQUE_ERROR_GROUP_EMPTY:&str="The specified group is empty";
@@ -175,7 +178,7 @@ impl Group
 
 // Main Data struct
 
-struct Storage { quecol: HashMap<String,Group> }
+struct Storage { quecol: HashMap<String,Group> , password: String }
 
 impl Storage
 {
@@ -188,7 +191,7 @@ impl Storage
 
 struct TheAppState { holder: Mutex<Storage> }
 
-// JSON requests
+// JSON schemas
 
 #[derive(Deserialize)]
 struct POST_BringOne
@@ -202,6 +205,13 @@ struct POST_BringMul
 {
 	name:String,
 	list:Vec<Vec<String>>
+}
+
+#[derive(Deserialize)]
+struct Configuration
+{
+	port: u16,
+	password: String,
 }
 
 // HTTP Handlers
@@ -573,29 +583,12 @@ async fn delete_range(from_path: web::Path<(String,usize,usize)>,app_data: web::
 
 // Application setup
 
-fn get_port() -> u16
+fn parse_port(raw_arg: String) -> (u16,bool)
 {
-	println!("\n- Getting the port");
-	let mut args: Vec<String> = env::args().collect();
-	if args.len()==1
+	match port_raw.parse::<u16>()
 	{
-		println!("  Using the default port");
-		RQUE_DEFAULT_PORT
-	}
-	else
-	{
-		let port_raw:String=args.remove(1);
-		match port_raw.parse::<u16>()
-		{
-			Ok(num) => {
-				println!("  Choosing the given port");
-				num
-			},
-			Err(_) => {
-				println!("  Using default port instead: Got NaN from the args");
-				RQUE_DEFAULT_PORT
-			},
-		}
+		Ok(num) => (num,true),
+		Err(_) => (RQUE_DEFAULT_PORT,false),
 	}
 }
 
@@ -603,11 +596,40 @@ fn get_port() -> u16
 async fn main() -> std::io::Result<()>
 {
 	println!("\n[ rQUE ]\n\n{}",RQUE_INFO);
-	let port=get_port();
-	println!("\nChosen port: {}",port);
+
+	let cfg_port:u16={
+
+		let mut args: Vec<String> = env::args().collect();
+		let port_raw:String=args.remove(1);
+
+		let (port,tryenv):(u16,bool)=parse_port(port_raw)
+		if tryenv
+		{
+			match std::env("RQUE_PORT")
+			{
+				Err(_)=>port,
+				Ok(raw_value)=>{
+					let (port_ok,ok):(u16,bool)=parse_port(port_raw);
+					println!("  {}", if { RQUE_MSG_CUS_PORT } else { RQUE_MSG_DEF_PORT } );
+					port_ok
+				}
+			}
+		}
+		else
+		{
+			println!("  {}",RQUE_MSG_CUS_PORT);
+			port
+		}
+	};
+
+	let cfg_password:String={
+		String::new()
+	};
+
 	let pdata=web::Data::new(TheAppState{
-		holder: Mutex::new( Storage{quecol: HashMap::new()} )
+		holder: Mutex::new( Storage{ quecol: HashMap::new() , password: cfg_password } )
 	});
+
 	HttpServer::new(move ||
 		App::new()
 			.app_data(pdata.clone())
@@ -624,7 +646,7 @@ async fn main() -> std::io::Result<()>
 			.service(delete_index)
 			.service(delete_range)
 		)
-		.bind(("127.0.0.1",port))?
+		.bind(("127.0.0.1",cfg_port))?
 		.run()
 		.await
 }
