@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::env;
 use std::sync::Mutex;
 use actix_web::{get, post, delete, web, App, HttpServer, HttpResponse};
-use actix_web::http::StatusCode;
+use actix_web::http::{header, StatusCode};
 use serde::Deserialize;
 use serde_json::json;
 
@@ -95,7 +95,6 @@ struct Group { data: Vec<Vec<String>> }
 
 impl Group
 {
-
 	fn new() -> Group { Group { data:Vec::new() } }
 
 	fn get_size(&self) -> usize { self.data.len() }
@@ -214,7 +213,44 @@ struct Configuration
 	password: String,
 }
 
-// HTTP Handlers
+// Utilities
+
+fn chk_auth(key: &String, req: &HttpRequest) -> bool
+{
+	let result:bool={
+		if key==""
+		{
+			return true;
+		};
+		let the_headers=req.headers();
+		if !the_headers.contains_key(header::AUTHORIZATION)
+		{
+			return false;
+		};
+		let the_value=the_headers.get(header::AUTHORIZATION).unwrap();
+		match the_value.to_str()
+		{
+			Err(_)=>false,
+			Ok(the_value_str)=>{
+				if the_value_str.starts_with("Bearer ")
+				{
+					if key==&the_value_str[7..] { true } else { false }
+				}
+				else { false }
+			}
+		}
+	};
+	if !result
+	{
+		let msg:String=match req.peer_addr()
+		{
+			Some(val)=>format!("\n- {} Attempted to access this server",val),
+			None=>String::from("\n- Someone attempted to access this server, watch out"),
+		};
+		println!("{}",msg);
+	};
+	result
+}
 
 fn json_res(sc: u16,payload: serde_json::Value) -> HttpResponse
 {
@@ -223,13 +259,11 @@ fn json_res(sc: u16,payload: serde_json::Value) -> HttpResponse
 	.json( payload )
 }
 
+// HTTP Handlers
+
 #[get("/")]
 async fn get_status() -> HttpResponse
 {
-	/*
-	HttpResponse::Ok()
-	.status(StatusCode::from_u16(200).unwrap())
-	.json( json!({}) )*/
 	json_res(200, json!({}) )
 }
 
