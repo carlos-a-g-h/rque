@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::env;
 use std::sync::Mutex;
-use actix_web::{get, post, delete, web, App, HttpServer, HttpResponse};
+use actix_web::{get, post, delete, web, App, HttpServer, HttpResponse, HttpRequest};
 use actix_web::http::{header, StatusCode};
 use serde::Deserialize;
 use serde_json::json;
@@ -215,8 +215,15 @@ struct Configuration
 
 // Utilities
 
-fn chk_auth(key: &String, req: &HttpRequest) -> bool
+fn is_auth(req: &HttpRequest) -> bool
 {
+	let key:&str={
+		match env::var("RQUE_SECRETKEY")
+		{
+			Ok(env_var)=>env_var.as_str(),
+			Err(_)=>"",
+		}
+	};
 	let result:bool={
 		if key==""
 		{
@@ -262,22 +269,23 @@ fn json_res(sc: u16,payload: serde_json::Value) -> HttpResponse
 // HTTP Handlers
 
 #[get("/")]
-async fn get_status() -> HttpResponse
+async fn get_status(req: HttpRequest) -> HttpResponse
 {
-	json_res(200, json!({}) )
+	if is_auth(&req) { json_res(200, json!({}) } else { json_res(401, json!({}) ) }
 }
 
 #[get("/help")]
-async fn show_help() -> HttpResponse
+async fn show_help(req: HttpRequest) -> HttpResponse
 {
+	let valid=is_auth(&req);
 	HttpResponse::Ok()
-	.status(StatusCode::from_u16(200).unwrap())
-	.insert_header(("Content-Type","text/html"))
-	.body( RQUE_HELP.to_string() )
+	.status(StatusCode::from_u16( if valid { 200 } else { 401 } ).unwrap())
+	.insert_header(("Content-Type", if valid { "text/html"} else { "text/plain" } ))
+	.body( if valid { RQUE_HELP.to_string() } else { String::from("UNAUTHORIZED") } )
 }
 
 #[get("/all")]
-async fn get_names(app_data: web::Data<TheAppState>) -> HttpResponse
+async fn get_names(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	let storage=app_data.holder.lock().unwrap();
 	if storage.is_empty()
@@ -631,7 +639,7 @@ async fn main() -> std::io::Result<()>
 {
 	println!("\n[ rQUE ]\n\n{}",RQUE_INFO);
 
-	let cfg_port:u16={
+	let port:u16={
 		println!("\n- From config: Obtaining the port");
 		let from_arg_raw:String={ let mut args: Vec<String>=env::args().collect();let sel:String=args.remove(1);sel };
 		let (from_arg,arg_ok):(u16,bool)=parse_port(from_arg_raw);
@@ -656,18 +664,8 @@ async fn main() -> std::io::Result<()>
 		}
 	};
 
-	let cfg_skey:String={
-		println!("\n- From config: Obtaining token");
-		let (msg,from_env):(&str,String)=match env::var("RQUE_SECRETKEY")
-		{
-			Err(_)=>("RQUE_SKEY env var not found or not valid: no authorization will be needed",String::new()),
-			Ok(valid)=>("Found the secret key among the env vars",valid),
-		};
-		println!("  {}",msg);from_env
-	};
-
 	let pdata=web::Data::new(TheAppState{
-		holder: Mutex::new( Storage{ quecol: HashMap::new() , skey: cfg_skey } )
+		holder: Mutex::new( Storage{ quecol: HashMap::new() } )
 	});
 
 	HttpServer::new(move ||
@@ -686,7 +684,7 @@ async fn main() -> std::io::Result<()>
 			.service(delete_index)
 			.service(delete_range)
 		)
-		.bind(("127.0.0.1",cfg_port))?
+		.bind(("127.0.0.1",port))?
 		.run()
 		.await
 }
