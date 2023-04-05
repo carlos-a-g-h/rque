@@ -44,7 +44,7 @@ static RQUE_HELP:&str="
 
 		<h3>Environment variables</h3>
 		<p><strong>RQUE_CUSTOMPORT</strong><br>Type: Number<br>Descr.: Custom port. The server will first look into the port argument before this environment variable</p>
-		<p><strong>RQUE_SECRETKEY</strong><br>Type: String<br>Descr.: Secret key that acts as a token for authorising all requests. All request must include an 'Authorization' header of type 'Bearer' like this one: <code>{ 'Authorization' : 'Bearer TheSecretKey' }</code></p>
+		<p><strong>RQUE_SECRETKEY</strong><br>Type: String<br>Descr.: Secret key that acts as a token for authorising all requests. All request must include an 'Authorization' header of type 'Bearer' like this one: <code>{ 'Authorization' : 'Bearer TheSecretKey' }</code>. The only exception of this is the GET request to the '/help' route if the client is '127.0.0.1'</p>
 
 		<h2>How data is stored</h2>
 		<h3>Schema</h3>
@@ -231,6 +231,15 @@ struct Configuration
 
 // Utilities
 
+fn get_client_ip(req: &HttpRequest) -> String
+{
+	match req.peer_addr()
+	{
+		Some(val)=>format!("{}",val),
+		None=>"Unknown".to_string(),
+	}
+}
+
 fn is_auth(req: &HttpRequest) -> bool
 {
 	let key:String=match env::var("RQUE_SECRETKEY") 
@@ -293,7 +302,10 @@ async fn get_status(req: HttpRequest) -> HttpResponse
 #[get("/help")]
 async fn show_help(req: HttpRequest) -> HttpResponse
 {
-	let valid=is_auth(&req);
+	let valid={
+		let iv=is_auth(&req);
+		if iv { iv } else { let client_ip=get_client_ip(&req);client_ip.starts_with("127.0.0.1") }
+	};
 	HttpResponse::Ok()
 	.status(StatusCode::from_u16( if valid { 200 } else { 401 } ).unwrap())
 	.insert_header(("Content-Type", if valid { "text/html"} else { "text/plain" } ))
