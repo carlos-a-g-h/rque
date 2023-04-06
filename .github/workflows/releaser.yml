@@ -81,7 +81,7 @@ jobs:
         fi
 
     - name: 'Create release build for Windows'
-      if: ${{ ( inputs.DOCKER == true && inputs.JUSTLIN == false ) || ( inputs.DOCKER == true && inputs.REL == false ) }}
+      if: ${{ ( inputs.DOCKER == false && inputs.JUSTLIN == false ) || ( inputs.DOCKER == true && inputs.REL == false ) }}
       working-directory: "${{ env.NAME_APP }}"
       run: |
         sudo apt install -y mingw-w64
