@@ -10,7 +10,7 @@ on:
         default: false
 
       DOCKER:
-        description: Generate base docker image (uses Linux build)
+        description: Build and publish docker image (requires linux build)
         required: true
         type: boolean
         default: false
@@ -49,9 +49,9 @@ jobs:
     steps:
 
     - name: 'Check inputs'
-      if: ${{ ( inputs.TGUP == false && inputs.REL == false ) || ( inputs.JUSTWIN == true && inputs.JUSTLIN == true ) }}
+      if: ${{ ( inputs.TGUP == false && inputs.REL == false && inputs.DOCKER == false ) || ( inputs.JUSTWIN == true && inputs.JUSTLIN == true ) }}
       run: |
-        echo "Fix your inputs"
+        echo "Fix your f***ing inputs"
         exit 1
 
     - name: 'Fetch repo'
@@ -94,14 +94,15 @@ jobs:
           mv -v "$BUILD_WIN" "./${{ env.NAME_WIN_OK }}"
         fi
 
-    - name: 'Generate Docker image with the linux build'
+    - name: 'Build and publish docker image'
       if: ${{ inputs.DOCKER == true && inputs.JUSTWIN == false }}
       run: |
         mkdir image_source
-        cp -va "${{ env.NAME_APP }}/${{ env.NAME_WIN_OK }}" image_source
+        cp -va "${{ env.NAME_APP }}/${{ env.NAME_LIN_OK }}" "image_source/${{ env.NAME_APP }}"
         cp -va Dockerfile image_source/
         wget "{{ env.URL_DOCKERUP }}" -O script.sh
         bash script.sh "${{ secrets.DH_USER }}" "${{ secrets.DH_PASS }}" "${{ env.NAME_APP }}" image_source
+        rm script.sh
 
     - name: 'Upload the build(s) to a Telegram chat'
       if: ${{ inputs.TGUP == true }}
