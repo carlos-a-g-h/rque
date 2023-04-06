@@ -35,6 +35,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  URL_DOCKERUP: "https://gist.github.com/carlos-a-g-h/d18c74b7d30bf40900a4d9e9370e942b/raw/script_docker_Publish_Image.sh"
   URL_TGUP_BIN: "https://github.com/carlos-a-g-h/tgup/releases/download/tgup/tgup.linux.amd64"
   URL_TGUP_CFG: "${{ secrets.URL_TGUP_CFG }}"
   NAME_APP: "rque"
@@ -95,9 +96,12 @@ jobs:
 
     - name: 'Generate Docker image with the linux build'
       if: ${{ inputs.DOCKER == true && inputs.JUSTWIN == false }}
-      working-directory: "${{ env.NAME_APP }}"
       run: |
-        #
+        mkdir image_source
+        cp -va "${{ env.NAME_APP }}/${{ env.NAME_WIN_OK }}" image_source
+        cp -va Dockerfile image_source/
+        wget "{{ env.URL_DOCKERUP }}" -O script.sh
+        bash script.sh "${{ secrets.DH_USER }}" "${{ secrets.DH_PASS }}" "${{ env.NAME_APP }}" image_source
 
     - name: 'Upload the build(s) to a Telegram chat'
       if: ${{ inputs.TGUP == true }}
