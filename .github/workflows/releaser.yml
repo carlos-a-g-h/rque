@@ -35,7 +35,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  URL_DOCKERUP: "https://gist.github.com/carlos-a-g-h/d18c74b7d30bf40900a4d9e9370e942b/raw/script_docker_Publish_Image.sh"
+  URL_DKSCRIPT: "https://gist.github.com/carlos-a-g-h/d18c74b7d30bf40900a4d9e9370e942b/raw/script_docker_Publish_Image.sh"
   URL_TGUP_BIN: "https://github.com/carlos-a-g-h/tgup/releases/download/tgup/tgup.linux.amd64"
   URL_TGUP_CFG: "${{ secrets.URL_TGUP_CFG }}"
   NAME_APP: "rque"
@@ -81,7 +81,7 @@ jobs:
         fi
 
     - name: 'Create release build for Windows'
-      if: ${{ inputs.JUSTLIN == false || ( inputs.DOCKER == true && inputs.REL == false ) }}
+      if: ${{ ( inputs.DOCKER == true && inputs.JUSTLIN == false ) || ( inputs.DOCKER == true && inputs.REL == false ) }}
       working-directory: "${{ env.NAME_APP }}"
       run: |
         sudo apt install -y mingw-w64
@@ -100,7 +100,7 @@ jobs:
         mkdir image_source
         cp -va "${{ env.NAME_APP }}/${{ env.NAME_LIN_OK }}" "image_source/${{ env.NAME_APP }}"
         cp -va Dockerfile image_source/
-        wget "{{ env.URL_DOCKERUP }}" -O script.sh
+        wget "${{ env.URL_DKSCRIPT }}" -O script.sh
         bash script.sh "${{ secrets.DH_USER }}" "${{ secrets.DH_PASS }}" "${{ env.NAME_APP }}" image_source
         rm script.sh
 
