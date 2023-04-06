@@ -1,5 +1,5 @@
 FROM alpine:latest
-WORKDIR /app
+WORKDIR /rque.server
 COPY . .
 RUN chmod +x rque
-CMD [ "rque" ]
+CMD [ "./rque" ]
