@@ -9,6 +9,12 @@ on:
         type: boolean
         default: false
 
+      DOCKER:
+        description: Generate base docker image (uses Linux build)
+        required: true
+        type: boolean
+        default: false
+
       REL:
         description: Create a GH release and add the build(s) to it
         required: true
@@ -86,6 +92,12 @@ jobs:
         then
           mv -v "$BUILD_WIN" "./${{ env.NAME_WIN_OK }}"
         fi
+
+    - name: 'Generate Docker image with the linux build'
+      if: ${{ inputs.DOCKER == true && inputs.JUSTWIN == false }}
+      working-directory: "${{ env.NAME_APP }}"
+      run: |
+        #
 
     - name: 'Upload the build(s) to a Telegram chat'
       if: ${{ inputs.TGUP == true }}
