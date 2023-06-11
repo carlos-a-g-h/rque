@@ -375,11 +375,35 @@ async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::
 	json_res(status_code,json!({ "status":status_code,"group_size":list_size,"group":list }))
 }
 
+#[get("/read/{name}/justsize")]
+async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
+{
+	if !is_auth(&req)
+	{
+		return json_res(401, json!({ "status":401 }));
+	};
+	let storage=app_data.holder.lock().unwrap();
+	if storage.is_empty()
+	{
+		return json_res(403,json!({ "status":403,"msg":RQUE_ERROR_ZERO_GROUPS }));
+	};
+
+	let the_name=&from_path.into_inner();
+	if !storage.quecol.contains_key(the_name)
+	{
+		return json_res(404,json!({ "status":404,"msg":RQUE_ERROR_GROUP_NOT_FOUND }));
+	};
+
+	let the_group=storage.quecol.get(the_name).unwrap();
+	let the_size=the_group.get_size() as u32;
+	let status_code:u16={ if the_size==0 { 206 } else { 200 } };
+	json_res(status_code,json!({ "status":status_code,"group_size":the_size }))
+}
 
 
 
 
-#[get("/sel/{name}/{index}")]
+#[get("/sel/{name}/members/{index}")]
 async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -415,7 +439,7 @@ async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_dat
 	}
 }
 
-#[get("/sel/{name}/{index}/{qtty}")]
+#[get("/sel/{name}/members/{index}/{qtty}")]
 async fn get_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
