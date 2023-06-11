@@ -3,6 +3,12 @@ name: Releaser
 on:
   workflow_dispatch:
     inputs:
+      TAG:
+        description: Tag name (version...?)
+        required: true
+        type: string
+        default: rque
+
       TGUP:
         description: Upload the build(s) to a chat in Telegram
         required: true
@@ -120,7 +126,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
-        tag_name: "${{ env.NAME_APP }}"
+        tag_name: "${{ inputs.TAG }}"
         release_name: "${{ env.NAME_APP }}"
         draft: false
         prerelease: false
