@@ -92,8 +92,8 @@ pub struct Storage { quecol: HashMap<String,Group> }
 
 impl Storage
 {
+	fn new() -> Storage { Storage { quecol:HashMap::new() } }
 	fn get_size(&self) -> usize { self.quecol.len() }
-
 	fn is_empty(&self) -> bool { return self.quecol.is_empty() }
 }
 
