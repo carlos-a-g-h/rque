@@ -96,7 +96,3 @@ impl Storage
 	fn get_size(&self) -> usize { self.quecol.len() }
 	fn is_empty(&self) -> bool { return self.quecol.is_empty() }
 }
-
-// Application Data in a Mutex
-
-struct TheAppState { holder: Mutex<Storage> }
