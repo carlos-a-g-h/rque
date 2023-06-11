@@ -1,22 +1,15 @@
 use std::collections::HashMap;
 
 // Group struct
-
 pub struct Group { data: Vec<Vec<String>> }
-
-pub impl Group
+impl Group
 {
-	fn new() -> Group { Group { data:Vec::new() } }
-
-	fn get_size(&self) -> usize { self.data.len() }
-
-	fn is_empty(&self) -> bool { let size=self.get_size();if size==0 { true } else { false } }
-
-	fn index_exists(&self,index:usize) -> bool { let size=self.get_size();if index>size || size==0 || size==index { false } else { true } }
-
-	fn get(&self,index: usize) -> Vec<String> { if self.index_exists(index) { self.data[index].clone() } else { Vec::new() } }
-
-	fn has_head(&self,head: &String) -> bool
+	pub fn new() -> Group { Group { data:Vec::new() } }
+	pub fn get_size(&self) -> usize { self.data.len() }
+	pub fn is_empty(&self) -> bool { let size=self.get_size();if size==0 { true } else { false } }
+	pub fn index_exists(&self,index:usize) -> bool { let size=self.get_size();if index>size || size==0 || size==index { false } else { true } }
+	pub fn get(&self,index: usize) -> Vec<String> { if self.index_exists(index) { self.data[index].clone() } else { Vec::new() } }
+	pub fn has_head(&self,head: &String) -> bool
 	{
 		if self.is_empty()
 		{
@@ -33,8 +26,7 @@ pub impl Group
 		};
 		rep
 	}
-
-	fn add(&mut self,value: Vec<String>) -> bool
+	pub fn add(&mut self,value: Vec<String>) -> bool
 	{
 		if value.len()==0
 		{
@@ -48,10 +40,8 @@ pub impl Group
 		self.data.push(value);
 		true
 	}
-
-	fn kick(&mut self,index: usize) -> Vec<String> { if self.index_exists(index) { self.data.remove(index) } else { Vec::new() } }
-
-	fn get_range(&mut self,index: usize, qtty: usize, steal: bool) -> Vec<Vec<String>>
+	pub fn kick(&mut self,index: usize) -> Vec<String> { if self.index_exists(index) { self.data.remove(index) } else { Vec::new() } }
+	pub fn get_range(&mut self,index: usize, qtty: usize, steal: bool) -> Vec<Vec<String>>
 	{
 		if !self.index_exists(index)
 		{
@@ -87,12 +77,10 @@ pub impl Group
 }
 
 // Main Data struct
-
 pub struct Storage { quecol: HashMap<String,Group> }
-
-pub impl Storage
+impl Storage
 {
-	fn new() -> Storage { Storage { quecol:HashMap::new() } }
-	fn get_size(&self) -> usize { self.quecol.len() }
-	fn is_empty(&self) -> bool { return self.quecol.is_empty() }
+	pub fn new() -> Storage { Storage { quecol:HashMap::new() } }
+	pub fn get_size(&self) -> usize { self.quecol.len() }
+	pub fn is_empty(&self) -> bool { return self.quecol.is_empty() }
 }
