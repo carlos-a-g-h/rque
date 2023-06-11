@@ -90,9 +90,9 @@ Res. (JSON, 4xx): { 'status':4xx , 'msg':'error description' }
 ```
 ```
 GET /sel/{name}
-Desc.: Recovers all the items of the specified group. It returns HTTP 206 (partial) if the group is empty
-Res. (JSON, 200): { 'status':200 , group_size: 999 , 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }
-Res. (JSON, 206): { 'status':206 , group_size: 999 , 'group' : [] }
+Desc.: Recovers all the items of the specified group and its size. It returns HTTP 206 (partial) if the group is empty
+Res. (JSON, 200): { 'status':200 , group_size: 9999 , 'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }
+Res. (JSON, 206): { 'status':206 , group_size: 0 , 'group' : [] }
 Res. (JSON, 4xx): { 'status':4xx , 'msg':'error description' }
 ```
 ```
