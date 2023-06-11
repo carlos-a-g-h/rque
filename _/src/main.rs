@@ -683,7 +683,7 @@ async fn main() -> std::io::Result<()>
 
 	let pdata=web::Data::new(TheAppState{
 		//holder: Mutex::new( Storage{ quecol: HashMap::new() } )
-		holder: Mutex::new( { Storage::new() } )
+		holder: Mutex::new( Storage::new() )
 	});
 
 	HttpServer::new(move ||
