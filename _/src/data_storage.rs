@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 pub struct Group { data: Vec<Vec<String>> }
 
-impl Group
+pub impl Group
 {
 	fn new() -> Group { Group { data:Vec::new() } }
 
@@ -90,7 +90,7 @@ impl Group
 
 pub struct Storage { quecol: HashMap<String,Group> }
 
-impl Storage
+pub impl Storage
 {
 	fn new() -> Storage { Storage { quecol:HashMap::new() } }
 	fn get_size(&self) -> usize { self.quecol.len() }
