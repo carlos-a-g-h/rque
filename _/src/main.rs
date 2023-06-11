@@ -6,7 +6,6 @@ use actix_web::http::{header, StatusCode};
 use serde::Deserialize;
 use serde_json::json;
 
-
 static RQUE_DEFAULT_PORT:u16=8080;
 
 static RQUE_MSG_DEF_PORT:&str="Using the default port";
@@ -86,21 +85,21 @@ static RQUE_HELP:&str="
 		<p>GET /help<br>Desc.: This help</p>
 		<p>GET /<br>Desc.: It always returns HTTP 200<br>Res. (200): <code>{}</code></p>
 		<p>GET /all<br>Desc.: Recovers a list of existing group names<br>Res. (JSON, 200): <code>{ 'status':200 , 'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<p>GET /sel/{name}<br>Desc.: Recovers all the items of the specified group and its size. Returns HTTP 206 (Partial response) if the group is empty<br>Res. (JSON, 200): <code>{ 'status':200 , 'group_size':9999 ,'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 206): <code>{ 'status':206 , group_size:0 , 'group':[] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<p>GET /sel/{name}/{index}<br>Desc.: Recovers a selected item from a group by its index<br>Res. (JSON, 200): <code>{ 'status':200 ,'item':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<p>GET /sel/{name}/{index}/{qtty}<br>Desc.: Recovers a slice of a group by selecting in range<br>Res. (JSON, 200): <code>{ 'status':200 , 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<p>POST /add/sin<br>JSON <code>{ 'name':'some group' , 'item': ['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue)<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'newgroup' : bool }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
-		<p>POST /add/mul<br>JSON <code>{ 'name':'some group' , 'list': ['head','content'] , ... , ['other','tail'] , ['thing'] }</code><br>Desc.: Adds multiple new items to a group. Returns 206 if partially successful<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'newgroup' : bool }</code><br>Res. (JSON, 206): <code>{ 'status' : 206 , 'newgroup' : bool , details: [...] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
+		<p>GET /g/{name}<br>Desc.: Recovers all the items of the specified group and its size. Returns HTTP 206 (Partial response) if the group is empty<br>Res. (JSON, 200): <code>{ 'status':200 , 'group_size':9999 ,'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 206): <code>{ 'status':206 , group_size:0 , 'group':[] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
+		<p>GET /g/{name}/s/{index}<br>Desc.: Recovers a selected item from a group by its index<br>Res. (JSON, 200): <code>{ 'status':200 ,'item':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
+		<p>GET /g/{name}/s/{index}/{qtty}<br>Desc.: Recovers a slice of a group by selecting in range<br>Res. (JSON, 200): <code>{ 'status':200 , 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
+		<p>POST /add-one<br>JSON <code>{ 'name':'some group' , 'item': ['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue)<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'newgroup' : bool }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
+		<p>POST /add-mul<br>JSON <code>{ 'name':'some group' , 'list': ['head','content'] , ... , ['other','tail'] , ['thing'] }</code><br>Desc.: Adds multiple new items to a group. Returns 206 if partially successful<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'newgroup' : bool }</code><br>Res. (JSON, 206): <code>{ 'status' : 206 , 'newgroup' : bool , details: [...] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
 		<p>DELETE /all<br>Desc.: Deletes all groups. Use with caution<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'error description' }</code></p>
-		<p>DELETE /sel/{name}<br>Desc.: Delete a specific group along with its items<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
-		<p>DELETE /sel/{name}/{index}<br>Desc.: Deletes an item from a specified group and recovers it in the JSON response<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'item' : ['some item','other data'] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
-		<p>DELETE /sel/{name}/{index}/{qtty}<br>Desc.: Deletes multiple items selected in range and recovers the deleted elements in the JSON response<br>Res. (JSON, 200): <code>{ 'status':200 , 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
+		<p>DELETE /d/{name}<br>Desc.: Delete a specific group along with its items<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
+		<p>DELETE /d/{name}/{index}<br>Desc.: Deletes an item from a specified group and recovers it in the JSON response<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'item' : ['some item','other data'] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
+		<p>DELETE /d/{name}/{index}/{qtty}<br>Desc.: Deletes multiple items selected in range and recovers the deleted elements in the JSON response<br>Res. (JSON, 200): <code>{ 'status':200 , 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
 		<h3>Range selection</h3>
 		<p>Range selection works by declaring a starting index and a quantity<br>If the quantity is zero, all items after the starting index are selected, including the item in the starting index</p>
 		<p>Examples:</p>
-		<p>DELETE /sel/queue1/3/2<br>Deletes from the group 'queue1' the items no. 3 and 4, because the starting index is 3 and the quantity is 2</p>
-		<p>DELETE /sel/stack/4/0<br>Deletes all items in the group 'stack' leaving only the items 0, 1, 2 and 3. In this case the starting index is 3 and all the other items after the item no. 3 are also selected because the quantity is set to 0</p>
-		<p>GET /sel/users/0/0<br>Gets all items from the group 'users', because the index is 0 and the quantity is also 0</p>
+		<p>DELETE /group/queue1/3/2<br>Deletes from the group 'queue1' the items no. 3 and 4, because the starting index is 3 and the quantity is 2</p>
+		<p>DELETE /group/stack/4/0<br>Deletes all items in the group 'stack' leaving only the items 0, 1, 2 and 3. In this case the starting index is 3 and all the other items after the item no. 3 are also selected because the quantity is set to 0</p>
+		<p>GET /group/users/0/0<br>Gets all items from the group 'users', because the index is 0 and the quantity is also 0</p>
 	</body>
 </html>
 ";
@@ -209,14 +208,14 @@ struct TheAppState { holder: Mutex<Storage> }
 // JSON schemas
 
 #[derive(Deserialize)]
-struct POST_BringOne
+struct POST_AddOne
 {
 	name:String,
 	item:Vec<String>,
 }
 
 #[derive(Deserialize)]
-struct POST_BringMul
+struct POST_AddMul
 {
 	name:String,
 	list:Vec<Vec<String>>
@@ -333,7 +332,7 @@ async fn get_names(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpRes
 	json_res(200,json!({ "status":200,"names":list_of_names }))
 }
 
-#[get("/sel/{name}")]
+#[get("/read/{name}")]
 async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -375,8 +374,8 @@ async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::
 	json_res(status_code,json!({ "status":status_code,"group_size":list_size,"group":list }))
 }
 
-#[get("/read/{name}/justsize")]
-async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
+#[get("/read/{name}/size")]
+async fn get_group_size(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
 	{
@@ -400,10 +399,7 @@ async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::
 	json_res(status_code,json!({ "status":status_code,"group_size":the_size }))
 }
 
-
-
-
-#[get("/sel/{name}/members/{index}")]
+#[get("/read/{name}/s/{index}")]
 async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -439,7 +435,7 @@ async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_dat
 	}
 }
 
-#[get("/sel/{name}/members/{index}/{qtty}")]
+#[get("/read/{name}/s/{index}/{qtty}")]
 async fn get_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -475,8 +471,8 @@ async fn get_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,a
 	}
 }
 
-#[post("/add/sin")]
-async fn post_group_addsin(req: HttpRequest,from_post: web::Json<POST_BringOne>,app_data: web::Data<TheAppState>) -> HttpResponse
+#[post("/add-one")]
+async fn post_group_addone(req: HttpRequest,from_post: web::Json<POST_AddOne>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
 	{
@@ -518,8 +514,8 @@ async fn post_group_addsin(req: HttpRequest,from_post: web::Json<POST_BringOne>,
 	json_res(status_code,if status_code==200 { json!({ "status":200,"newgroup":newgroup }) } else { json!({ "status":status_code,"msg":msg }) })
 }
 
-#[post("/add/mul")]
-async fn post_group_addmul(req: HttpRequest,from_post: web::Json<POST_BringMul>,app_data: web::Data<TheAppState>) -> HttpResponse
+#[post("/add-mul")]
+async fn post_group_addmul(req: HttpRequest,from_post: web::Json<POST_AddMul>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
 	{
@@ -601,13 +597,14 @@ async fn delete_all(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpRe
 	}
 }
 
-#[delete("/sel/{name}")]
+#[delete("/d/{name}")]
 async fn delete_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
 	{
 		return json_res(401, json!({ "status":401 }));
 	};
+
 	let mut storage=app_data.holder.lock().unwrap();
 
 	let mut msg:&str="";
@@ -631,7 +628,7 @@ async fn delete_group(req: HttpRequest,from_path: web::Path<String>,app_data: we
 	json_res(status_code, if status_code==200 { json!({ "status":status_code }) } else { json!({ "status":status_code,"msg":msg }) } )
 }
 
-#[delete("/sel/{name}/{index}")]
+#[delete("/d/{name}/{index}")]
 async fn delete_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -682,7 +679,7 @@ async fn delete_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_
 	json_res(status_code,json!({ "status":status_code,"msg":msg }))
 }
 
-#[delete("/sel/{name}/{index}/{qtty}")]
+#[delete("/d/{name}/{index}/{qtty}")]
 async fn delete_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -787,9 +784,10 @@ async fn main() -> std::io::Result<()>
 			.service(get_status)
 			.service(get_names)
 			.service(get_group)
+			.service(get_group_size)
 			.service(get_index)
 			.service(get_range)
-			.service(post_group_addsin)
+			.service(post_group_addone)
 			.service(post_group_addmul)
 			.service(delete_all)
 			.service(delete_group)
