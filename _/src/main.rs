@@ -354,6 +354,7 @@ async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::
 
 	let the_group=storage.quecol.get(the_name).unwrap();
 	let mut list:Vec<Vec<String>>=Vec::new();
+	let mut list_size:u32=0;
 
 	let status_code:u16={
 		if the_group.is_empty()
@@ -365,13 +366,18 @@ async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::
 			for item in the_group.data.iter()
 			{
 				list.push(item.to_vec());
+				list_size=list_size+1;
 			};
 			200
 		}
 	};
 
-	json_res(status_code,json!({ "status":status_code,"group":list }))
+	json_res(status_code,json!({ "status":status_code,"group_size":list_size,"group":list }))
 }
+
+
+
+
 
 #[get("/sel/{name}/{index}")]
 async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
