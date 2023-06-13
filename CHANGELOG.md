@@ -1,5 +1,17 @@
 # Changelog
 
+## 2023-06-13
+
+- Changes in the documentation
+
+- Changed names to all routes, check the docs ASAP
+
+- Starting to splitted the code into separate modules / files
+
+- Added a GET route ONLY to get the size of a group
+
+- Added detail level tuning when adding multiple items to a group
+
 ## 2023-04-05
 
 - Added basic authentication using { 'Authentication' : 'Bearer ...' } header

@@ -1,3 +1,7 @@
+mod data_storage;
+mod globals;
+mod utils;
+
 use std::collections::HashMap;
 use std::env;
 use std::sync::Mutex;
@@ -6,200 +10,24 @@ use actix_web::http::{header, StatusCode};
 use serde::Deserialize;
 use serde_json::json;
 
-static RQUE_DEFAULT_PORT:u16=8080;
+use crate::data_storage::Group;
+use crate::data_storage::Storage;
 
-static RQUE_MSG_DEF_PORT:&str="Using the default port";
-static RQUE_MSG_CUS_PORT:&str="Using a custom port";
+use crate::globals::RQUE_DEFAULT_PORT;
+use crate::globals::RQUE_MSG_DEF_PORT;
+use crate::globals::RQUE_MSG_CUS_PORT;
+use crate::globals::RQUE_ERROR_ZERO_GROUPS;
+use crate::globals::RQUE_ERROR_GROUP_NOT_FOUND;
+use crate::globals::RQUE_ERROR_GROUP_EMPTY;
+use crate::globals::RQUE_ERROR_ITEM_NOT_FOUND;
+use crate::globals::RQUE_ERROR_ITEM_NOT_VALID;
+use crate::globals::RQUE_ERROR_SLICE;
+use crate::globals::RQUE_INFO;
+use crate::globals::RQUE_HELP;
 
-static RQUE_ERROR_ZERO_GROUPS:&str="There are no groups yet";
-static RQUE_ERROR_GROUP_NOT_FOUND:&str="The specified group does not exist";
-static RQUE_ERROR_GROUP_EMPTY:&str="The specified group is empty";
-static RQUE_ERROR_ITEM_NOT_FOUND:&str="The item that correspond the specified index does not exist";
-static RQUE_ERROR_ITEM_NOT_VALID:&str="The provided item is not valid";
-static RQUE_ERROR_SLICE:&str="Try lowering the starting index";
-
-static RQUE_INFO:&str="Written by Carlos Alberto González Hernández - 2023-04-05";
-static RQUE_HELP:&str="
-<!DOCTYPE html>
-<html lang=\"en\">
-	<meta charset=\"UTF-8\">
-	<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
-	<head>
-		<title>rQUE quick help</title>
-	</head>
-	<body>
-		<h1>rQUE</h1>
-		<h2>Running the server</h2>
-		<h3>Usage and examples</h3>
-
-		<p>The only (optional) argument is the port<br>
-		<strong><code>$ rque {PORT}</code></strong></p>
-
-		<p>Example1: Runs the server normally at the default port (8080) or at a custom port specified by an environment variable<br>
-		<strong><code>$ rque</strong></code></p>
-
-		<p>Example2: Runs the server at port 23456<br>
-		<strong><code>$ rque 23456</strong></code></p>
-
-		<h3>Environment variables</h3>
-		<p><strong>RQUE_CUSTOMPORT</strong><br>Type: Number<br>Descr.: Custom port. The server will first look into the port argument before this environment variable</p>
-		<p><strong>RQUE_SECRETKEY</strong><br>Type: String<br>Descr.: Secret key that acts as a token for authorising all requests. All request must include an 'Authorization' header of type 'Bearer' like this one: <code>{ 'Authorization' : 'Bearer TheSecretKey' }</code>. The only exception of this is the GET request to the '/help' route if the client is '127.0.0.1'</p>
-
-		<h2>How data is stored</h2>
-		<h3>Schema</h3>
-		<p>The data is stored in a large hashmap, where each key is the name of a group and each value is the content of the group</p>
-		<p>
-			<strong>
-				<code>
-<pre>
-{
-	'group 1':
-	[
-		['thing1'] ,
-		['thing2','bonus']
-	],
-
-	'group2':
-	[
-		['thing1']
-	],
-
-	'another group':
-	[
-		['headname1','data'],
-		['headname2','data'],
-		['headname3','data','more data']
-	]
-}
-
-</pre>
-				</code>
-			</strong>
-		</p>
-		<h3>Rules</h3>
-		<p>→ Groups are lists and each group name is unique<br>→ Each item inside a group is a list with the first index being the head of the item<br>→ Items cannot have a length of zero, they must at least have the head<br>→ 2 or more items in the same group cannot have the same head, and this is checked automatically by the program before adding new items to a group<br>→ If a group does not exist when adding items, the group is created automatically before adding the new items<br>→ A group can only exist as empty if all of its items have been removed manually</p>
-
-		<h2>API reference</h2>
-		<h3>Endpoints</h3>
-		<p>GET requests read existing data only, POST requests add data, and DELETE requests remove/steal data<br>All data modifications with POST and DELETE requests are printed in the console output</p>
-		<p>GET /help<br>Desc.: This help</p>
-		<p>GET /<br>Desc.: It always returns HTTP 200<br>Res. (200): <code>{}</code></p>
-		<p>GET /all<br>Desc.: Recovers a list of existing group names<br>Res. (JSON, 200): <code>{ 'status':200 , 'result':['name1','name2',...,'nameN']}</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<p>GET /g/{name}<br>Desc.: Recovers all the items of the specified group and its size. Returns HTTP 206 (Partial response) if the group is empty<br>Res. (JSON, 200): <code>{ 'status':200 , 'group_size':9999 ,'group' : [ ['thing1',...,'qwe'] , ['thing2',...,'rty'] , ... , ['thingN',...,'uio'] ] }</code><br>Res. (JSON, 206): <code>{ 'status':206 , group_size:0 , 'group':[] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<p>GET /g/{name}/s/{index}<br>Desc.: Recovers a selected item from a group by its index<br>Res. (JSON, 200): <code>{ 'status':200 ,'item':['thing','content',...,'qwe'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<p>GET /g/{name}/s/{index}/{qtty}<br>Desc.: Recovers a slice of a group by selecting in range<br>Res. (JSON, 200): <code>{ 'status':200 , 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<p>POST /add-one<br>JSON <code>{ 'name':'some group' , 'item': ['head','content',...,'tail']}</code><br>Desc.: Adds a new item to the bottom of an existing group (yes, it's like a queue)<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'newgroup' : bool }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
-		<p>POST /add-mul<br>JSON <code>{ 'name':'some group' , 'list': ['head','content'] , ... , ['other','tail'] , ['thing'] }</code><br>Desc.: Adds multiple new items to a group. Returns 206 if partially successful<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'newgroup' : bool }</code><br>Res. (JSON, 206): <code>{ 'status' : 206 , 'newgroup' : bool , details: [...] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
-		<p>DELETE /all<br>Desc.: Deletes all groups. Use with caution<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'error description' }</code></p>
-		<p>DELETE /d/{name}<br>Desc.: Delete a specific group along with its items<br>Res. (JSON, 200): <code>{ 'status': 200 }</code><br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : 'error description' }</code></p>
-		<p>DELETE /d/{name}/{index}<br>Desc.: Deletes an item from a specified group and recovers it in the JSON response<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'item' : ['some item','other data'] }</code><br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : 'error description' }</code></p>
-		<p>DELETE /d/{name}/{index}/{qtty}<br>Desc.: Deletes multiple items selected in range and recovers the deleted elements in the JSON response<br>Res. (JSON, 200): <code>{ 'status':200 , 'slice' : ['thing1',...,'tail'] , ['thing2'] , ['head','data','more'] }</code><br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg':'error description' }</code></p>
-		<h3>Range selection</h3>
-		<p>Range selection works by declaring a starting index and a quantity<br>If the quantity is zero, all items after the starting index are selected, including the item in the starting index</p>
-		<p>Examples:</p>
-		<p>DELETE /group/queue1/3/2<br>Deletes from the group 'queue1' the items no. 3 and 4, because the starting index is 3 and the quantity is 2</p>
-		<p>DELETE /group/stack/4/0<br>Deletes all items in the group 'stack' leaving only the items 0, 1, 2 and 3. In this case the starting index is 3 and all the other items after the item no. 3 are also selected because the quantity is set to 0</p>
-		<p>GET /group/users/0/0<br>Gets all items from the group 'users', because the index is 0 and the quantity is also 0</p>
-	</body>
-</html>
-";
-
-// Group struct
-
-struct Group { data: Vec<Vec<String>> }
-
-impl Group
-{
-	fn new() -> Group { Group { data:Vec::new() } }
-
-	fn get_size(&self) -> usize { self.data.len() }
-
-	fn is_empty(&self) -> bool { let size=self.get_size();if size==0 { true } else { false } }
-
-	fn index_exists(&self,index:usize) -> bool { let size=self.get_size();if index>size || size==0 || size==index { false } else { true } }
-
-	fn get(&self,index: usize) -> Vec<String> { if self.index_exists(index) { self.data[index].clone() } else { Vec::new() } }
-
-	fn has_head(&self,head: &String) -> bool
-	{
-		if self.is_empty()
-		{
-			return false;
-		};
-		let mut rep=false;
-		for elem in &self.data
-		{
-			let elem_head=elem.first().unwrap();
-			if elem_head==head
-			{
-				rep=true;break;
-			};
-		};
-		rep
-	}
-
-	fn add(&mut self,value: Vec<String>) -> bool
-	{
-		if value.len()==0
-		{
-			return false;
-		};
-		let val_head=value.first().unwrap();
-		if self.has_head(val_head)
-		{
-			return false;
-		};
-		self.data.push(value);
-		true
-	}
-
-	fn kick(&mut self,index: usize) -> Vec<String> { if self.index_exists(index) { self.data.remove(index) } else { Vec::new() } }
-
-	fn get_range(&mut self,index: usize, qtty: usize, steal: bool) -> Vec<Vec<String>>
-	{
-		if !self.index_exists(index)
-		{
-			return Vec::new()
-		};
-		let size=self.get_size();
-		let qtty_real:usize={ if qtty==0 { size } else { qtty } };
-		let mut result:Vec<Vec<String>>=Vec::new();
-		let mut pos=index;
-		let mut added:usize=0;
-		loop
-		{
-			let elem:Vec<String>={
-				if steal { self.kick(pos) } else { self.get(pos) }
-			};
-			if elem.len()==0
-			{
-				break;
-			};
-			result.push(elem.to_vec());
-			if !steal
-			{
-				pos=pos+1;
-			};
-			added=added+1;
-			if pos==size || added==qtty_real
-			{
-				break;
-			};
-		};
-		result
-	}
-}
-
-// Main Data struct
-
-struct Storage { quecol: HashMap<String,Group> }
-
-impl Storage
-{
-	fn get_size(&self) -> usize { self.quecol.len() }
-
-	fn is_empty(&self) -> bool { return self.quecol.is_empty() }
-}
+use crate::utils::get_client_ip;
+use crate::utils::is_auth;
+use crate::utils::json_res;
 
 // Application Data in a Mutex
 
@@ -218,75 +46,15 @@ struct POST_AddOne
 struct POST_AddMul
 {
 	name:String,
-	list:Vec<Vec<String>>
+	list:Vec<Vec<String>>,
+	details:bool,
 }
 
 #[derive(Deserialize)]
 struct Configuration
 {
-	port: u16,
-	password: String,
-}
-
-// Utilities
-
-fn get_client_ip(req: &HttpRequest) -> String
-{
-	match req.peer_addr()
-	{
-		Some(val)=>format!("{}",val),
-		None=>"Unknown".to_string(),
-	}
-}
-
-fn is_auth(req: &HttpRequest) -> bool
-{
-	let key:String=match env::var("RQUE_SECRETKEY") 
-	{
-		Ok(env_var)=>env_var,
-		Err(_)=>String::new()
-	};
-	let result:bool={
-		let key_str=key.as_str();
-		if key.as_str()==""
-		{
-			return true;
-		};
-		let the_headers=req.headers();
-		if !the_headers.contains_key(header::AUTHORIZATION)
-		{
-			return false;
-		};
-		let the_value=the_headers.get(header::AUTHORIZATION).unwrap();
-		match the_value.to_str()
-		{
-			Err(_)=>false,
-			Ok(the_value_str)=>{
-				if the_value_str.starts_with("Bearer ")
-				{
-					if key==&the_value_str[7..] { true } else { false }
-				}
-				else { false }
-			}
-		}
-	};
-	if !result
-	{
-		let msg:String=match req.peer_addr()
-		{
-			Some(val)=>format!("\n- {} Attempted to access this server",val),
-			None=>String::from("\n- Someone attempted to access this server, watch out"),
-		};
-		println!("{}",msg);
-	};
-	result
-}
-
-fn json_res(sc: u16,payload: serde_json::Value) -> HttpResponse
-{
-	HttpResponse::Ok()
-	.status(StatusCode::from_u16(sc).unwrap())
-	.json( payload )
+	port:u16,
+	password:String,
 }
 
 // HTTP Handlers
@@ -332,7 +100,7 @@ async fn get_names(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpRes
 	json_res(200,json!({ "status":200,"names":list_of_names }))
 }
 
-#[get("/read/{name}")]
+#[get("/r/{name}")]
 async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -374,7 +142,7 @@ async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::
 	json_res(status_code,json!({ "status":status_code,"group_size":list_size,"group":list }))
 }
 
-#[get("/read/{name}/size")]
+#[get("/r/{name}/size")]
 async fn get_group_size(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -399,7 +167,7 @@ async fn get_group_size(req: HttpRequest,from_path: web::Path<String>,app_data: 
 	json_res(status_code,json!({ "status":status_code,"group_size":the_size }))
 }
 
-#[get("/read/{name}/s/{index}")]
+#[get("/r/{name}/s/{index}")]
 async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -435,7 +203,7 @@ async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_dat
 	}
 }
 
-#[get("/read/{name}/s/{index}/{qtty}")]
+#[get("/r/{name}/s/{index}/{qtty}")]
 async fn get_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -571,7 +339,18 @@ async fn post_group_addmul(req: HttpRequest,from_post: web::Json<POST_AddMul>,ap
 		match status_code
 		{
 			200=>json!({"status":status_code,"newgroup":newgroup}),
-			206=>json!({"status":status_code,"newgroup":newgroup,"details":res_arr}),
+			206=>if from_post.details
+			{
+				let mut items_succ=0;
+				let mut items_fail=0;
+				for b in res_arr.iter()
+				{
+					if *b { items_succ=items_succ+1 } else { items_fail=items_fail+1 };
+				};
+				json!({"status":status_code,"newgroup":newgroup,"items_succ":items_succ,"items_fail":items_fail})
+
+			} else { json!({"status":status_code,"newgroup":newgroup,"details":res_arr}) },
+
 			_=>json!({"status":status_code,"msg":msg})
 		}
 	)
@@ -766,7 +545,7 @@ async fn main() -> std::io::Result<()>
 	};
 
 	println!("\n- {}",
-		match env::var("RQUE_SECRETKEY") 
+		match env::var("RQUE_SECRETKEY")
 		{
 			Ok(_)=>"Secret key env var detected!",
 			Err(_)=>"WARNING: There is no secret key",
@@ -774,8 +553,11 @@ async fn main() -> std::io::Result<()>
 	);
 
 	let pdata=web::Data::new(TheAppState{
-		holder: Mutex::new( Storage{ quecol: HashMap::new() } )
+		//holder: Mutex::new( Storage{ quecol: HashMap::new() } )
+		holder: Mutex::new( Storage::new() )
 	});
+
+	println!("Need help? Docs are provided by this server at: http://127.0.0.1{}/help",if port==80 { String::new() } else { format!(":{}",port) });
 
 	HttpServer::new(move ||
 		App::new()

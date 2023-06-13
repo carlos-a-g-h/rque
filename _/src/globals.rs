@@ -1,12 +1,25 @@
+pub static RQUE_DEFAULT_PORT:u16=8080;
+
+pub static RQUE_MSG_DEF_PORT:&str="Using the default port";
+pub static RQUE_MSG_CUS_PORT:&str="Using a custom port";
+
+pub static RQUE_ERROR_ZERO_GROUPS:&str="There are no groups yet";
+pub static RQUE_ERROR_GROUP_NOT_FOUND:&str="The specified group does not exist";
+pub static RQUE_ERROR_GROUP_EMPTY:&str="The specified group is empty";
+pub static RQUE_ERROR_ITEM_NOT_FOUND:&str="The item that correspond the specified index does not exist";
+pub static RQUE_ERROR_ITEM_NOT_VALID:&str="The provided item is not valid";
+pub static RQUE_ERROR_SLICE:&str="Try lowering the starting index";
+
+pub static RQUE_INFO:&str="Written by Carlos Alberto González Hernández - 2023-06-13";
+pub static RQUE_HELP:&str="
 <!DOCTYPE html>
-<html lang="en">
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang=\"en\">
+	<meta charset=\"UTF-8\">
+	<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
 	<head>
 		<title>rQUE quick help</title>
 	</head>
 	<body>
-
 		<h1>rQUE</h1>
 		<h2>Running the server</h2>
 		<h3>Usage and examples</h3>
@@ -154,3 +167,4 @@
 
 	</body>
 </html>
+";
