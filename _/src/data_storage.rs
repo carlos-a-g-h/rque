@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 // Group struct
-pub struct Group { data: Vec<Vec<String>> }
+pub struct Group {
+	pub data: Vec<Vec<String>>
+}
 impl Group
 {
 	pub fn new() -> Group { Group { data:Vec::new() } }
@@ -77,7 +79,9 @@ impl Group
 }
 
 // Main Data struct
-pub struct Storage { quecol: HashMap<String,Group> }
+pub struct Storage {
+	pub quecol: HashMap<String,Group>
+}
 impl Storage
 {
 	pub fn new() -> Storage { Storage { quecol:HashMap::new() } }
