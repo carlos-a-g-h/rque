@@ -127,7 +127,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
       with:
         tag_name: "${{ inputs.TAG }}"
-        release_name: "${{ env.NAME_APP }}"
+        release_name: "${{ inputs.TAG }}"
         draft: false
         prerelease: false
 
