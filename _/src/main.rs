@@ -557,7 +557,7 @@ async fn main() -> std::io::Result<()>
 		holder: Mutex::new( Storage::new() )
 	});
 
-	println!("Need help? Docs are provided by this server at: http://127.0.0.1{}/help",if port==80 { String::new() } else { format!(":{}",port) });
+	println!("\nNeed any help? This is the documentation: http://127.0.0.1{}/help",if port==80 { String::new() } else { format!(":{}",port) });
 
 	HttpServer::new(move ||
 		App::new()

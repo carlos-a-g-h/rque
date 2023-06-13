@@ -17,7 +17,7 @@ pub static RQUE_HELP:&str="
 	<meta charset=\"UTF-8\">
 	<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">
 	<head>
-		<title>rQUE quick help</title>
+		<title>rQUE documentation</title>
 	</head>
 	<body>
 		<h1>rQUE</h1>
