@@ -424,7 +424,18 @@ async fn post_group_addmul(req: HttpRequest,from_post: web::Json<POST_AddMul>,ap
 		match status_code
 		{
 			200=>json!({"status":status_code,"newgroup":newgroup}),
-			206=>json!({"status":status_code,"newgroup":newgroup,"details":res_arr}),
+			206=>if from_post.details
+			{
+				let mut items_succ=0;
+				let mut items_fail=0;
+				for b in res_arr.iter()
+				{
+					if *b { items_succ=items_succ+1 } else { items_fail=items_fail+1 };
+				};
+				json!({"status":status_code,"newgroup":newgroup,"items_succ":items_succ,"items_fail":items_fail})
+
+			} else { json!({"status":status_code,"newgroup":newgroup,"details":res_arr}) },
+
 			_=>json!({"status":status_code,"msg":msg})
 		}
 	)
