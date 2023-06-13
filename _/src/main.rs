@@ -1,4 +1,5 @@
 mod data_storage;
+mod utils;
 
 use std::collections::HashMap;
 use std::env;
@@ -10,6 +11,9 @@ use serde_json::json;
 
 use crate::data_storage::Group;
 use crate::data_storage::Storage;
+use crate::utils::get_client_ip;
+use crate::utils::is_auth;
+use crate::utils::json_res;
 
 static RQUE_DEFAULT_PORT:u16=8080;
 
@@ -127,75 +131,16 @@ struct POST_AddMul
 {
 	name:String,
 	list:Vec<Vec<String>>
+	details:bool,
 }
 
 #[derive(Deserialize)]
 struct Configuration
 {
-	port: u16,
-	password: String,
+	port:u16,
+	password:String,
 }
 
-// Utilities
-
-fn get_client_ip(req: &HttpRequest) -> String
-{
-	match req.peer_addr()
-	{
-		Some(val)=>format!("{}",val),
-		None=>"Unknown".to_string(),
-	}
-}
-
-fn is_auth(req: &HttpRequest) -> bool
-{
-	let key:String=match env::var("RQUE_SECRETKEY") 
-	{
-		Ok(env_var)=>env_var,
-		Err(_)=>String::new()
-	};
-	let result:bool={
-		let key_str=key.as_str();
-		if key.as_str()==""
-		{
-			return true;
-		};
-		let the_headers=req.headers();
-		if !the_headers.contains_key(header::AUTHORIZATION)
-		{
-			return false;
-		};
-		let the_value=the_headers.get(header::AUTHORIZATION).unwrap();
-		match the_value.to_str()
-		{
-			Err(_)=>false,
-			Ok(the_value_str)=>{
-				if the_value_str.starts_with("Bearer ")
-				{
-					if key==&the_value_str[7..] { true } else { false }
-				}
-				else { false }
-			}
-		}
-	};
-	if !result
-	{
-		let msg:String=match req.peer_addr()
-		{
-			Some(val)=>format!("\n- {} Attempted to access this server",val),
-			None=>String::from("\n- Someone attempted to access this server, watch out"),
-		};
-		println!("{}",msg);
-	};
-	result
-}
-
-fn json_res(sc: u16,payload: serde_json::Value) -> HttpResponse
-{
-	HttpResponse::Ok()
-	.status(StatusCode::from_u16(sc).unwrap())
-	.json( payload )
-}
 
 // HTTP Handlers
 
