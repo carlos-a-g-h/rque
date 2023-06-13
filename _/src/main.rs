@@ -130,7 +130,7 @@ struct POST_AddOne
 struct POST_AddMul
 {
 	name:String,
-	list:Vec<Vec<String>>
+	list:Vec<Vec<String>>,
 	details:bool,
 }
 
@@ -619,7 +619,7 @@ async fn main() -> std::io::Result<()>
 	};
 
 	println!("\n- {}",
-		match env::var("RQUE_SECRETKEY") 
+		match env::var("RQUE_SECRETKEY")
 		{
 			Ok(_)=>"Secret key env var detected!",
 			Err(_)=>"WARNING: There is no secret key",
