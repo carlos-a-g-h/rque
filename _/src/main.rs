@@ -57,7 +57,6 @@ struct Configuration
 	password:String,
 }
 
-
 // HTTP Handlers
 
 #[get("/")]
@@ -101,7 +100,7 @@ async fn get_names(req: HttpRequest,app_data: web::Data<TheAppState>) -> HttpRes
 	json_res(200,json!({ "status":200,"names":list_of_names }))
 }
 
-#[get("/read/{name}")]
+#[get("/r/{name}")]
 async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -143,7 +142,7 @@ async fn get_group(req: HttpRequest,from_path: web::Path<String>,app_data: web::
 	json_res(status_code,json!({ "status":status_code,"group_size":list_size,"group":list }))
 }
 
-#[get("/read/{name}/size")]
+#[get("/r/{name}/size")]
 async fn get_group_size(req: HttpRequest,from_path: web::Path<String>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -168,7 +167,7 @@ async fn get_group_size(req: HttpRequest,from_path: web::Path<String>,app_data: 
 	json_res(status_code,json!({ "status":status_code,"group_size":the_size }))
 }
 
-#[get("/read/{name}/s/{index}")]
+#[get("/r/{name}/s/{index}")]
 async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -204,7 +203,7 @@ async fn get_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_dat
 	}
 }
 
-#[get("/read/{name}/s/{index}/{qtty}")]
+#[get("/r/{name}/s/{index}/{qtty}")]
 async fn get_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
@@ -557,6 +556,8 @@ async fn main() -> std::io::Result<()>
 		//holder: Mutex::new( Storage{ quecol: HashMap::new() } )
 		holder: Mutex::new( Storage::new() )
 	});
+
+	println!("Need help? Docs are provided by this server at: http://127.0.0.1{}/help",if port==80 { String::new() } else { format!(":{}",port) });
 
 	HttpServer::new(move ||
 		App::new()
