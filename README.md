@@ -24,13 +24,13 @@ $ cargo run
 
 If you want to build from source, you can take a look at the workflow used by this repo [here](.github/workflows/releaser.yml)
 
-- How Linux builds are built: [here](.github/workflows/releaser.yml#L62)
+- How Linux builds are built: [here](.github/workflows/releaser.yml#L75)
 
-- How Windows builds are built: [here](.github/workflows/releaser.yml#L76)
+- How Windows builds are built: [here](.github/workflows/releaser.yml#L89)
 
 ## Documentation
 
-The documentation is inside the server, try running it without any arguments
+The documentation is in the 'help.html' file. This documentation is also embedded in the program
 
 You can read the changelog [here](CHANGELOG.md)
 
