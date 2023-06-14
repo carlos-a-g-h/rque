@@ -416,14 +416,14 @@ pub async fn delete_index(req: HttpRequest,from_post: web::Json<DELETE_Return>,f
 			}
 			else
 			{
-				println!("\n- Deleted an item from a group\n  Name: {}\n  Index: {}\n  Item: {:?}\n  Recover: {}", &the_name,the_index , if from_post.recover { &item } else { item } , from_post.recover );
+				println!("\n- Deleted an item from a group\n  Name: {}\n  Index: {}\n  Item: {:?}\n  Recover: {}", &the_name,the_index , &item , from_post.recover );
 				if from_post.recover
 				{
 					return json_res(200,json!({"status":200,"item":item}));
 				}
 				else
 				{
-					return json_res(200,json!({"status":200}));
+					item.clear();return json_res(200,json!({"status":200}));
 				}
 			};
 		};
@@ -467,7 +467,7 @@ pub async fn delete_range(req: HttpRequest,from_post: web::Json<DELETE_Return>,f
 	else
 	{
 		let the_slice_len=the_slice.len();
-		println!("\n- Deleted multiple items from a group\n  Name: {}\n  List: {:?}\n  Recover: {}", &the_name , if from_post.recover { the_slice } else { &the_slice } , from_post.recover );
-		if from_post.recover { json_res(200,json!({ "status":200,"slice_size":the_slice_len,"slice":the_slice })) } else { json_res(200,json!({ "status":200 })) }
+		println!("\n- Deleted multiple items from a group\n  Name: {}\n  List: {:?}\n  Recover: {}", &the_name , &the_slice , from_post.recover );
+		if from_post.recover { json_res(200,json!({ "status":200,"slice_size":the_slice_len,"slice":the_slice })) } else { the_slice.clear();json_res(200,json!({ "status":200 })) }
 	}
 }
