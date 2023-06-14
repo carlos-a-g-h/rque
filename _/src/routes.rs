@@ -1,4 +1,4 @@
-use actix_web::{get,delete,post,App,Data,HttpResponse,HttpRequest,StatusCode};
+use actix_web::{get,delete,post,App,HttpResponse,HttpRequest,StatusCode};
 use serde::Deserialize;
 use serde_json::json;
 
