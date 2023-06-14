@@ -1,5 +1,9 @@
 # Changelog
 
+## 2023-06-14
+
+-Recovery of deleted items is now available as an option (Check out the docs)
+
 ## 2023-06-13
 
 - Changes in the documentation
