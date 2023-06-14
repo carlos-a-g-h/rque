@@ -24,9 +24,9 @@ $ cargo run
 
 If you want to build from source, you can take a look at the workflow used by this repo [here](.github/workflows/releaser.yml)
 
-- How Linux binaries are built: [here](.github/workflows/releaser.yml#L75)
+- How Linux binaries are built: [here](.github/workflows/releaser.yml#L83)
 
-- How Windows binaries are built: [here](.github/workflows/releaser.yml#L89)
+- How Windows binaries are built: [here](.github/workflows/releaser.yml#L97)
 
 ## Documentation
 
