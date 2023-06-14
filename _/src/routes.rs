@@ -17,28 +17,14 @@ use crate::utils::is_auth;
 use crate::utils::json_res;
 
 #[derive(Deserialize)]
-pub struct POST_AddOne
-{
-	pub name:String,
-	pub item:Vec<String>,
-}
+struct POST_AddOne { name:String, item:Vec<String> }
 
 #[derive(Deserialize)]
-pub struct POST_AddMul
-{
-	pub name:String,
-	pub list:Vec<Vec<String>>,
-	pub details:bool,
-}
+struct POST_AddMul
+{ name:String, list:Vec<Vec<String>>, details:bool }
 
-/*
 #[derive(Deserialize)]
-pub struct Configuration
-{
-	pub port:u16,
-	pub password:String,
-}
-*/
+struct DELETE_Return { recover:bool }
 
 #[get("/")]
 pub async fn get_status(req: HttpRequest) -> HttpResponse
@@ -384,12 +370,11 @@ pub async fn delete_group(req: HttpRequest,from_path: web::Path<String>,app_data
 		println!("\n- Deleting this group:\n  Name: {}\n  Items: {:?}",the_name,&the_group.data);
 		the_group.data.clear();
 	};
-
 	json_res(status_code, if status_code==200 { json!({ "status":status_code }) } else { json!({ "status":status_code,"msg":msg }) } )
 }
 
 #[delete("/d/{name}/{index}")]
-pub async fn delete_index(req: HttpRequest,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+pub async fn delete_index(req: HttpRequest,from_post: web::Json<DELETE_Return>,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
 	{
@@ -398,7 +383,8 @@ pub async fn delete_index(req: HttpRequest,from_path: web::Path<(String,usize)>,
 	let mut storage=app_data.holder.lock().unwrap();
 
 	let mut msg:&str="";
-	let mut status_code:u16={ if storage.is_empty() { msg=RQUE_ERROR_ZERO_GROUPS;403 } else { 200 } };
+	let mut status_code:u16=0;
+	(status_code,msg)={ if storage.is_empty() { (403,RQUE_ERROR_ZERO_GROUPS) } else { (200,"") } };
 
 	let (the_name,the_index)=from_path.into_inner();
 
@@ -430,8 +416,15 @@ pub async fn delete_index(req: HttpRequest,from_path: web::Path<(String,usize)>,
 			}
 			else
 			{
-				println!("\n- Deleted an item from a group\n  Name: {}\n  Index: {}\n  Item: {:?}",&the_name,the_index,&item);
-				return json_res(200,json!({"status":200,"item":item}));
+				println!("\n- Deleted an item from a group\n  Name: {}\n  Index: {}\n  Item: {:?}\n  Recover: {}", &the_name,the_index , if from_post.recover { &item } else { item } , from_post.recover );
+				if from_post.recover
+				{
+					return json_res(200,json!({"status":200,"item":item}));
+				}
+				else
+				{
+					return json_res(200,json!({"status":200}));
+				}
 			};
 		};
 	};
@@ -440,7 +433,7 @@ pub async fn delete_index(req: HttpRequest,from_path: web::Path<(String,usize)>,
 }
 
 #[delete("/d/{name}/{index}/{qtty}")]
-pub async fn delete_range(req: HttpRequest,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+pub async fn delete_range(req: HttpRequest,from_post: web::Json<DELETE_Return>,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
 	{
@@ -473,7 +466,8 @@ pub async fn delete_range(req: HttpRequest,from_path: web::Path<(String,usize,us
 	}
 	else
 	{
-		println!("\n- Deleted multiple items from a group\n  Name: {}\n  List: {:?}",&the_name,&the_slice);
-		json_res(200,json!({ "status":200,"slice":the_slice }))
+		let the_slice_len=the_slice.len();
+		println!("\n- Deleted multiple items from a group\n  Name: {}\n  List: {:?}\n  Recover: {}", &the_name , if from_post.recover { the_slice } else { &the_slice } , from_post.recover );
+		if from_post.recover { json_res(200,json!({ "status":200,"slice_size":the_slice_len,"slice":the_slice })) } else { json_res(200,json!({ "status":200 })) }
 	}
 }
