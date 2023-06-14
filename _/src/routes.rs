@@ -24,7 +24,7 @@ struct POST_AddMul
 { name:String, list:Vec<Vec<String>>, details:bool }
 
 #[derive(Deserialize)]
-struct DELETE_Return { recover:bool }
+struct DELETE_Recover { recover:bool }
 
 #[get("/")]
 pub async fn get_status(req: HttpRequest) -> HttpResponse
@@ -374,7 +374,7 @@ pub async fn delete_group(req: HttpRequest,from_path: web::Path<String>,app_data
 }
 
 #[delete("/d/{name}/{index}")]
-pub async fn delete_index(req: HttpRequest,from_post: web::Json<DELETE_Return>,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+pub async fn delete_index(req: HttpRequest,from_post: web::Json<DELETE_Recover>,from_path: web::Path<(String,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
 	{
@@ -384,7 +384,9 @@ pub async fn delete_index(req: HttpRequest,from_post: web::Json<DELETE_Return>,f
 
 	let mut msg:&str="";
 	let mut status_code:u16=0;
-	(status_code,msg)={ if storage.is_empty() { (403,RQUE_ERROR_ZERO_GROUPS) } else { (200,"") } };
+	(status_code,msg)={
+		if storage.is_empty() { (403,RQUE_ERROR_ZERO_GROUPS) } else { (200,"") }
+	};
 
 	let (the_name,the_index)=from_path.into_inner();
 
@@ -423,7 +425,7 @@ pub async fn delete_index(req: HttpRequest,from_post: web::Json<DELETE_Return>,f
 				}
 				else
 				{
-					item.clear();return json_res(200,json!({"status":200}));
+					return json_res(200,json!({"status":200}));
 				}
 			};
 		};
@@ -433,7 +435,7 @@ pub async fn delete_index(req: HttpRequest,from_post: web::Json<DELETE_Return>,f
 }
 
 #[delete("/d/{name}/{index}/{qtty}")]
-pub async fn delete_range(req: HttpRequest,from_post: web::Json<DELETE_Return>,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
+pub async fn delete_range(req: HttpRequest,from_post: web::Json<DELETE_Recover>,from_path: web::Path<(String,usize,usize)>,app_data: web::Data<TheAppState>) -> HttpResponse
 {
 	if !is_auth(&req)
 	{
@@ -468,6 +470,6 @@ pub async fn delete_range(req: HttpRequest,from_post: web::Json<DELETE_Return>,f
 	{
 		let the_slice_len=the_slice.len();
 		println!("\n- Deleted multiple items from a group\n  Name: {}\n  List: {:?}\n  Recover: {}", &the_name , &the_slice , from_post.recover );
-		if from_post.recover { json_res(200,json!({ "status":200,"slice_size":the_slice_len,"slice":the_slice })) } else { the_slice.clear();json_res(200,json!({ "status":200 })) }
+		if from_post.recover { json_res(200,json!({ "status":200,"slice_size":the_slice_len,"slice":the_slice })) } else { json_res(200,json!({ "status":200 })) }
 	}
 }
