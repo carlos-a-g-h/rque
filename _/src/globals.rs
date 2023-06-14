@@ -10,7 +10,7 @@ pub static RQUE_ERROR_ITEM_NOT_FOUND:&str="The item that correspond the specifie
 pub static RQUE_ERROR_ITEM_NOT_VALID:&str="The provided item is not valid";
 pub static RQUE_ERROR_SLICE:&str="Try lowering the starting index";
 
-pub static RQUE_INFO:&str="Written by Carlos Alberto González Hernández - 2023-06-13";
+pub static RQUE_INFO:&str="Written by Carlos Alberto González Hernández - 2023-06-14";
 pub static RQUE_HELP:&str="
 <!DOCTYPE html>
 <html lang=\"en\">
@@ -79,7 +79,7 @@ pub static RQUE_HELP:&str="
 		<h2>API reference</h2>
 		<h3>Endpoints</h3>
 
-		<p>GET requests read existing data only, POST requests add data, and DELETE requests remove/steal data
+		<p>GET requests read existing data only, POST requests add data, and DELETE requests delete data
 		<br>All data modifications with POST and DELETE requests are printed in the console output
 
 		<p>GET /help
@@ -126,7 +126,7 @@ pub static RQUE_HELP:&str="
 
 		<p>POST /add-mul
 		<br>JSON <code>{ 'name' : String , 'list': List[List[String]] , 'details': Bool }</code>
-		<br>Desc.: Adds multiple new items to a group and tells wether the group has been created from scratch or not (newgroup key). Returns 206 if partially successful and in this case it will say the amount of items added (items_succ key), the ammount of items that could not be added (items_fail key), and if the 'details' key is set to true, a list of booleans will be returned, you can use this list to get a detailed view of the items that were added and the items that were not added
+		<br>Desc.: Adds multiple new items to a group and tells wether the group has been created from scratch or not ('newgroup' key in the response). Returns 206 if partially successful and in this case it will say the amount of items added ('items_succ' key), the ammount of items that could not be added ('items_fail' key), and if the 'details' key is set to true, a list of booleans will be returned, you can use this list to get a detailed view of the items that were added and the items that were not added
 		<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'newgroup' : Bool }</code>
 		<br>Res. { 'details':true } (JSON, 206): <code>{ 'status' : 206 , 'newgroup' : Bool , items_succ: Integer , items_fail : Integer , details: List[Bool] }</code>
 		<br>Res. { 'details':false } (JSON, 206): <code>{ 'status' : 206 , 'newgroup' : Bool , items_succ: Integer , items_fail : Integer }</code>
@@ -142,13 +142,17 @@ pub static RQUE_HELP:&str="
 		<br>Res. (JSON, 4xx): <code>{ 'status': 4xx , 'msg' : String }</code></p>
 
 		<p>DELETE /d/{name}/{index}
-		<br>Desc.: Deletes an item from a specified group and recovers it in the JSON response
-		<br>Res. (JSON, 200): <code>{ 'status' : 200 , 'item' : List[String] }</code>
+		<br>JSON <code>{ 'recover' : Bool }</code>
+		<br>Desc.: Deletes an item from a specified group. You can recover the deleted item in the response (with the 'recover' key)
+		<br>Res. { 'recover' : true } (JSON, 200): <code>{ 'status' : 200 , 'item' : List[String] }</code>
+		<br>Res. { 'recover' : false } (JSON, 200): <code>{ 'status' : 200 }</code>
 		<br>Res. (JSON, 4xx): <code>{ 'status' : 4xx , 'msg' : String }</code></p>
 
 		<p>DELETE /d/{name}/{index}/{qtty}
-		<br>Desc.: Deletes multiple items selected in range and recovers the deleted elements in the JSON response
-		<br>Res. (JSON, 200): <code>{ 'status':200 , 'slice' : List[List[String]] }</code>
+		<br>JSON <code>{ 'recover' : Bool }</code>
+		<br>Desc.: Deletes multiple items selected in range. You can recover a slice of the deleted items in the response (with the 'recover' key)
+		<br>Res. { 'recover' : true } (JSON, 200): <code>{ 'status':200 , 'slice_size' : Integer , 'slice' : List[List[String]] }</code>
+		<br>Res. { 'recover' : false } (JSON, 200): <code>{ 'status':200 }</code>
 		<br>Res. (JSON, 4xx): <code>{ 'status':4xx , 'msg' : String }</code></p>
 
 		<h3>Range selection</h3>
