@@ -30,7 +30,7 @@ If you want to build from source, you can take a look at the workflow used by th
 
 ## Documentation
 
-The documentation is in the 'help.html' file. This documentation is also embedded in the program
+The documentation is in the 'help.html' file. The docs are also embedded in the program
 
 You can read the changelog [here](CHANGELOG.md)
 
