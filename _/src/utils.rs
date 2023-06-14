@@ -2,7 +2,6 @@ use std::env;
 
 use actix_web::{HttpRequest,HttpResponse};
 use actix_web::http::{header, StatusCode};
-use serde_json::json;
 
 pub fn get_client_ip(req: &HttpRequest) -> String
 {
@@ -21,7 +20,6 @@ pub fn is_auth(req: &HttpRequest) -> bool
 		Err(_)=>String::new()
 	};
 	let result:bool={
-		let key_str=key.as_str();
 		if key.as_str()==""
 		{
 			return true;
