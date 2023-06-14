@@ -69,7 +69,7 @@ jobs:
     - name: 'Fetch repo'
       uses: actions/checkout@v3
       with:
-        repository: ${{ inputs.BRANCH }}
+        repository: "${{ github.repository }}/${{ inputs.BRANCH }}"
 
     - name: 'Run: cargo init'
       run: |
