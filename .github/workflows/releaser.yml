@@ -3,11 +3,11 @@ name: Releaser
 on:
   workflow_dispatch:
     inputs:
-      BRANCH:
-        description: Branch name
-        required: true
-        type: string
-        default: main
+      #BRANCH:
+      #  description: Branch name
+      #  required: true
+      #  type: string
+      #  default: main
 
       TAG:
         description: Tag name (version...?)
@@ -68,8 +68,8 @@ jobs:
 
     - name: 'Fetch repo'
       uses: actions/checkout@v3
-      with:
-        repository: "${{ github.repository }}/${{ inputs.BRANCH }}"
+      #with:
+      #  repository: "${{ github.repository }}/${{ inputs.BRANCH }}"
 
     - name: 'Run: cargo init'
       run: |
