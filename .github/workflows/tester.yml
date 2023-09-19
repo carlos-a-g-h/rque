@@ -1,0 +1,42 @@
+name: Tester
+
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - '.github/**'
+      - 'README.md'
+      - 'help.html'
+
+env:
+  CARGO_TERM_COLOR: always
+  NAME_APP: "rque"
+  NAME_SRC: "_"
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: "Fetch repo"
+      uses: actions/checkout@v3
+
+    - name: "Run: cargo init"
+      run: |
+        cargo init --vcs=none "${{ env.NAME_APP }}"
+        cat dep.txt >> "${{ env.NAME_APP }}/Cargo.toml"
+
+    - name: "Run: cargo build"
+      working-directory: "${{ env.NAME_APP }}"
+      run: cargo build --verbose
+
+    - name: "Move the code"
+      run: |
+        cp -va "${{ env.NAME_SRC }}"/* "${{ env.NAME_APP }}"/
+        rm -rfv "${{ env.NAME_SRC }}"
+        printf "\nProject files:\n"
+        find "${{ env.NAME_APP }}"
+
+    - name: "Run: cargo test"
+      working-directory: "${{ env.NAME_APP }}"
+      run: cargo test --verbose
