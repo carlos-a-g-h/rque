@@ -1,0 +1,164 @@
+name: Releaser
+
+on:
+  workflow_dispatch:
+    inputs:
+      #BRANCH:
+      #  description: Branch name
+      #  required: true
+      #  type: string
+      #  default: main
+
+      TAG:
+        description: Tag name (version...?)
+        required: true
+        type: string
+        default: rque
+
+      TGUP:
+        description: Upload the build(s) to a chat in Telegram
+        required: true
+        type: boolean
+        default: false
+
+      DOCKER:
+        description: Build and publish docker image (requires linux build)
+        required: true
+        type: boolean
+        default: false
+
+      REL:
+        description: Create a GH release and add the build(s) to it
+        required: true
+        type: boolean
+        default: false
+
+      JUSTLIN:
+        description: Build only for Linux
+        required: true
+        type: boolean
+        default: false
+
+      JUSTWIN:
+        description: Build only for Windows
+        required: true
+        type: boolean
+        default: false
+
+env:
+  CARGO_TERM_COLOR: always
+  URL_DKSCRIPT: "https://gist.github.com/carlos-a-g-h/d18c74b7d30bf40900a4d9e9370e942b/raw/script_docker_Publish_Image.sh"
+  URL_TGUP_BIN: "https://github.com/carlos-a-g-h/tgup/releases/download/tgup/tgup.linux.amd64"
+  URL_TGUP_CFG: "${{ secrets.URL_TGUP_CFG }}"
+  NAME_APP: "rque"
+  NAME_SRC: "_"
+  NAME_LIN_OK: "rque.linux.amd64"
+  NAME_WIN_OK: "rque.win64.exe"
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: 'Check inputs'
+      if: ${{ ( inputs.TGUP == false && inputs.REL == false && inputs.DOCKER == false ) || ( inputs.JUSTWIN == true && inputs.JUSTLIN == true ) }}
+      run: |
+        echo "Fix your f***ing inputs"
+        exit 1
+
+    - name: 'Fetch repo'
+      uses: actions/checkout@v3
+      #with:
+      #  repository: "${{ github.repository }}/${{ inputs.BRANCH }}"
+
+    - name: 'Run: cargo init'
+      run: |
+        cargo init --vcs=none "${{ env.NAME_APP }}"
+        cat dep.txt >> "${{ env.NAME_APP }}/Cargo.toml"
+        cp -va "${{ env.NAME_SRC }}"/* "${{ env.NAME_APP }}"/
+        rm -rfv "${{ env.NAME_SRC }}"
+        printf "\nProject files:\n"
+        find "${{ env.NAME_APP }}"
+
+    - name: 'Create release build for Linux'
+      if: ${{ inputs.JUSTWIN == false }}
+      working-directory: "${{ env.NAME_APP }}"
+      run: |
+        sudo apt install -y musl musl-dev musl-tools
+        rustup target add x86_64-unknown-linux-musl
+        RUSTFLAGS='-C target-feature=+crt-static' cargo build --release --verbose --target x86_64-unknown-linux-musl
+        BUILD_LIN=$(find target/x86_64-unknown-linux-musl|grep /"${{ env.NAME_APP }}"$)
+        echo "BUILD_LIN = $BUILD_LIN"
+        if [ -f "$BUILD_LIN" ]
+        then
+          mv -v "$BUILD_LIN" "./${{ env.NAME_LIN_OK }}"
+        fi
+
+    - name: 'Create release build for Windows'
+      if: ${{ ( inputs.JUSTLIN == false && inputs.DOCKER == false ) || ( inputs.REL == true && inputs.JUSTLIN == false ) }}
+      working-directory: "${{ env.NAME_APP }}"
+      run: |
+        sudo apt install -y mingw-w64
+        rustup target add x86_64-pc-windows-gnu
+        RUSTFLAGS='-C target-feature=+crt-static' cargo build --release --verbose --target x86_64-pc-windows-gnu
+        BUILD_WIN=$(find target/x86_64-pc-windows-gnu|grep /"${{ env.NAME_APP }}.exe"$)
+        echo "BUILD_WIN = $BUILD_WIN"
+        if [ -f "$BUILD_WIN" ]
+        then
+          mv -v "$BUILD_WIN" "./${{ env.NAME_WIN_OK }}"
+        fi
+
+    - name: 'Build and publish docker image'
+      if: ${{ inputs.DOCKER == true && inputs.JUSTWIN == false }}
+      run: |
+        mkdir image_source
+        cp -va "${{ env.NAME_APP }}/${{ env.NAME_LIN_OK }}" "image_source/${{ env.NAME_APP }}"
+        cp -va Dockerfile image_source/
+        wget "${{ env.URL_DKSCRIPT }}" -O script.sh
+        bash script.sh "${{ secrets.DH_USER }}" "${{ secrets.DH_PASS }}" "${{ env.NAME_APP }}" image_source
+        rm script.sh
+
+    - name: 'Upload the build(s) to a Telegram chat'
+      if: ${{ inputs.TGUP == true }}
+      working-directory: "${{ env.NAME_APP }}"
+      run: |
+        wget "${{ env.URL_TGUP_CFG }}" -O "up.json"
+        wget "${{ env.URL_TGUP_BIN }}" -O "up.bin"
+        chmod +x up.bin
+        ./up.bin "${{ env.NAME_LIN_OK }}" "${{ env.NAME_WIN_OK }}"
+
+    - name: 'Create Github release'
+      if: ${{ inputs.REL == true }}
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      with:
+        tag_name: "${{ inputs.TAG }}"
+        release_name: "${{ inputs.TAG }}"
+        draft: false
+        prerelease: false
+
+    - name: 'Add the Linux build to the Github release'
+      if: ${{ inputs.REL == true && inputs.JUSTWIN == false }}
+      id: uplin
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: "${{ env.NAME_APP }}/${{ env.NAME_LIN_OK }}"
+        asset_name: "${{ env.NAME_LIN_OK }}"
+        asset_content_type: application/octet-stream
+
+    - name: 'Add the Windows build to the Github release'
+      if: ${{ inputs.REL == true && inputs.JUSTLIN == false }}
+      id: upwin
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: "${{ env.NAME_APP }}/${{ env.NAME_WIN_OK }}"
+        asset_name: "${{ env.NAME_WIN_OK }}"
+        asset_content_type: application/octet-stream
